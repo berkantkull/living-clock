@@ -4,6 +4,8 @@
 
 LIVING CLOCK, yerel zamanı sürekli dönüşen organik bir form üzerinden görünür kılan, bağımlılıksız bir Canvas 2D dijital sanat deneyimidir. Varsayılan dil Türkçedir; arayüzden İngilizceye geçilebilir.
 
+[Living Clock’u canlı aç](https://berkantkull.github.io/living-clock/)
+
 ## Özellikler
 
 - Cihazın gerçek yerel zamanını kullanan hassas saat ve tarih
@@ -43,7 +45,7 @@ Sonra `http://localhost:8080` adresini açın.
 
 ## GitHub Pages
 
-Bu depo doğrudan GitHub Pages ile yayınlanabilir. GitHub’da **Settings → Pages → Build and deployment → Deploy from a branch** yolunu izleyin; `main` dalını ve `/ (root)` klasörünü seçin.
+GitHub Pages, siteyi `main` dalının kök dizininden yayınlar.
 
 ## Teknik notlar
 
