@@ -26,7 +26,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; min-width: 280px; }
+    body { margin: 0; }
     button { font: inherit; color: inherit; cursor: pointer; }
     button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
@@ -61,8 +61,9 @@
     .credit:hover { text-decoration: underline; }
     .credit:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
 
-    .toolbar, .languages { display: flex; align-items: center; }
+    .toolbar, .languages, .view-tools { display: flex; align-items: center; }
     .toolbar { gap: 7px; }
+    .view-tools { gap: 7px; }
     .languages { border: 1px solid var(--line); border-radius: 3px; margin-right: 5px; }
     .languages button, .tool {
       display: grid;
@@ -96,6 +97,7 @@
       pointer-events: none;
     }
     canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .art-space { display: none; }
     .stage-label {
       display: flex;
       align-items: center;
@@ -272,7 +274,7 @@
     }
 
     body.zen .installation { padding: 0; display: block; }
-    body.zen .stage { height: 100vh; height: 100svh; border: 0; }
+    body.zen .stage { height: 100vh; height: 100dvh; border: 0; }
     body.zen .masthead, body.zen .catalog, body.zen .field-notes,
     body.zen .specimen, body.zen .stage-label, body.zen .vitals,
     body.zen .life-status { display: none; }
@@ -283,41 +285,100 @@
       .forms { grid-row: 2; grid-column: 1 / -1; }
       .mutation { min-height: 42px; }
     }
-    @media (max-width: 620px) {
+    @media (max-width: 800px), (orientation: landscape) and (max-height: 500px) and (max-width: 960px) {
       .installation {
-        padding-inline: max(14px, env(safe-area-inset-left), env(safe-area-inset-right));
-        grid-template-rows: auto minmax(390px, 1fr) auto;
+        padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+        grid-template-rows: auto minmax(min-content, 1fr) auto;
       }
-      .masthead { padding-block: max(12px, env(safe-area-inset-top)) 14px; gap: 6px; }
+      .masthead { padding-block: max(8px, env(safe-area-inset-top)) 8px; gap: 6px; }
       .wordmark { gap: 6px; }
       .wordmark h1 { font-size: 1.25rem; }
       .wordmark svg { width: 23px; height: 23px; }
-      .wordmark small { margin-top: 4px; font-size: .56rem; letter-spacing: .07em; }
-      .toolbar { gap: 3px; }
-      .languages { margin-right: 2px; }
-      .languages button, .tool { width: 34px; min-height: 42px; }
+      .wordmark small { margin-top: 4px; font-size: .62rem; letter-spacing: .04em; }
+      .toolbar, .view-tools { gap: 3px; }
+      .languages { margin: 0; }
+      .languages button, .tool { width: 44px; min-height: 44px; }
       .tool svg { width: 17px; }
-      .stage-label { top: 15px; font-size: .67rem; }
-      .clock { top: 56px; transform: none; }
-      .clock time { font-size: clamp(3.6rem, 15vw, 6rem); }
-      .date { margin: 7px 0 0 2px; font-size: .69rem; letter-spacing: .095em; }
+      .stage {
+        display: grid;
+        grid-template:
+          "light light" auto
+          "clock clock" auto
+          "art art" minmax(clamp(170px, 52vw, 270px), 1fr)
+          "notes specimen" auto / minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 7px 12px;
+        padding: 14px;
+        touch-action: manipulation;
+      }
+      .stage-label, .clock, .field-notes, .specimen {
+        position: relative;
+        inset: auto;
+        min-width: 0;
+      }
+      .stage-label { grid-area: light; font-size: .7rem; letter-spacing: .12em; }
+      .clock { grid-area: clock; transform: none; }
+      .clock time { font-size: clamp(2.3rem, 14vw, 5rem); }
+      .date { margin: 7px 0 0 2px; font-size: .75rem; letter-spacing: .08em; }
       .vitals { margin-top: 8px; min-height: 18px; font-size: .72rem; }
       .life-status { margin-top: 3px; font-size: .7rem; }
-      .field-notes { max-width: 53%; }
-      .hint { font-size: .74rem; }
-      .sunlight { margin-top: 3px; font-size: .7rem; }
-      .specimen .caption { font-size: .68rem; }
-      .catalog { padding-block: 12px; }
+      .art-space { display: block; grid-area: art; pointer-events: none; }
+      .field-notes { grid-area: notes; max-width: none; align-self: end; pointer-events: none; }
+      .hint { font-size: .8rem; }
+      .sunlight { min-height: 44px; margin-top: 0; font-size: .75rem; pointer-events: auto; }
+      .specimen { grid-area: specimen; max-width: none; align-self: end; padding-bottom: 8px; }
+      .specimen .caption { font-size: .66rem; letter-spacing: .07em; overflow-wrap: anywhere; }
+      .specimen-name { font-size: clamp(1.12rem, 5vw, 1.85rem); overflow-wrap: anywhere; }
+      .notice { top: auto; right: 14px; bottom: 14px; }
+      .catalog { padding-block: 8px; }
       .catalog h2 { font-size: 1.25rem; }
-      .forms { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .form { min-height: 48px; flex-direction: row; gap: 6px; padding: 5px 3px; }
+      .form { min-height: 44px; flex-direction: row; gap: 6px; padding: 5px 3px; white-space: normal; }
       .form svg { width: 19px; height: 19px; }
-      body.zen .clock { top: max(34px, env(safe-area-inset-top)); }
+      .mutation { min-height: 44px; }
+      body.zen .stage {
+        grid-template: "clock" auto "art" minmax(0, 1fr) / minmax(0, 1fr);
+        padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+          max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+      }
+    }
+    @media (max-width: 560px) {
+      .forms { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 410px) {
+      .wordmark svg { display: none; }
+      .wordmark h1 { font-size: 1.13rem; }
     }
     @media (max-width: 355px) {
-      .wordmark svg { display: none; }
-      .languages button, .tool { width: 31px; }
+      .masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+      .toolbar { display: contents; }
+      .view-tools { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); }
+      .view-tools .tool { width: 100%; }
       .form { font-size: .75rem; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) and (min-width: 560px) and (max-width: 960px) {
+      .stage {
+        grid-template:
+          "light art" auto
+          "clock art" minmax(0, 1fr)
+          "notes art" auto / minmax(0, 2fr) minmax(0, 3fr);
+        min-height: 235px;
+        gap: 3px 14px;
+        padding: 10px 14px 7px;
+      }
+      .clock { align-self: center; }
+      .clock time { font-size: clamp(2.6rem, 7vw, 4.9rem); }
+      .specimen { position: absolute; right: 14px; bottom: 8px; padding: 0; }
+      .catalog { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+      .catalog h2 { max-width: 6rem; font-size: 1.02rem; }
+      .forms { grid-column: auto; grid-row: auto; }
+      .form { flex-direction: column; gap: 1px; font-size: .7rem; }
+      .form svg { width: 16px; height: 16px; }
+      .mutation { padding-inline: 8px; font-size: .75rem; }
+      body.zen .stage { grid-template: "clock art" minmax(0, 1fr) / minmax(0, 2fr) minmax(0, 3fr); }
+    }
+    @media (pointer: coarse) {
+      .stage { touch-action: manipulation; }
+      .languages button, .tool { min-width: 44px; min-height: 44px; }
+      .sunlight, .mutation { min-height: 44px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: .01ms !important; }
@@ -339,15 +400,17 @@
           <button type="button" data-lang="tr" lang="tr" aria-label="Türkçe" aria-pressed="true">TR</button>
           <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
         </div>
-        <button type="button" class="tool" id="fullscreen" aria-pressed="false" aria-label="Tam ekran" data-label="fullscreen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg>
-        </button>
-        <button type="button" class="tool" id="zen" aria-pressed="false" aria-label="Zen modu" data-label="zen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12c2.5-3.8 5.7-5.7 9.5-5.7s7 1.9 9.5 5.7c-2.5 3.8-5.7 5.7-9.5 5.7s-7-1.9-9.5-5.7Z"/><circle cx="12" cy="12" r="2.2"/></svg>
-        </button>
-        <button type="button" class="tool" id="save" aria-label="PNG olarak kaydet" data-label="save">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4l1.5-2h5L16 8h4v11H4Z"/><circle cx="12" cy="13.3" r="3"/></svg>
-        </button>
+        <div class="view-tools">
+          <button type="button" class="tool" id="fullscreen" aria-pressed="false" aria-label="Tam ekran" data-label="fullscreen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg>
+          </button>
+          <button type="button" class="tool" id="zen" aria-pressed="false" aria-label="Zen modu" data-label="zen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12c2.5-3.8 5.7-5.7 9.5-5.7s7 1.9 9.5 5.7c-2.5 3.8-5.7 5.7-9.5 5.7s-7-1.9-9.5-5.7Z"/><circle cx="12" cy="12" r="2.2"/></svg>
+          </button>
+          <button type="button" class="tool" id="save" aria-label="PNG olarak kaydet" data-label="save">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4l1.5-2h5L16 8h4v11H4Z"/><circle cx="12" cy="13.3" r="3"/></svg>
+          </button>
+        </div>
       </div>
     </header>
     <section class="stage" id="stage" aria-label="Canlı saat" data-label="stage" aria-describedby="care-hint care-key" tabindex="0">
@@ -363,6 +426,7 @@
         </div>
         <p class="life-status" id="life-status"></p>
       </div>
+      <div class="art-space" id="art-space" aria-hidden="true"></div>
       <div class="field-notes">
         <p class="hint" id="care-hint" data-text="hint">Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.</p>
         <span class="sr-only" id="care-key" data-text="careKey">Sahne odaktayken boşluk tuşu formu besler.</span>
@@ -417,6 +481,7 @@
 
       const stage = document.getElementById("stage");
       const canvas = document.getElementById("art");
+      const artSpace = document.getElementById("art-space");
       const ctx = canvas.getContext("2d", { alpha: false });
       const timeNode = document.getElementById("time");
       const dateNode = document.getElementById("date");
@@ -435,7 +500,6 @@
       const formButtons = document.querySelectorAll("[data-form]");
       const languageButtons = document.querySelectorAll("[data-lang]");
       const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      const compact = window.matchMedia("(max-width: 620px)");
       const TAU = 2 * Math.PI;
       const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
       const families = ["veil", "root", "spore", "fold", "colony", "filament"];
@@ -511,6 +575,7 @@
       let daylight, solarPosition = null, sunPending = false, lastSunMinute = null;
       let lastVitalPaint = 0, lastSave = 0, impactAt = -Infinity;
       let keyboardCareUntil = -Infinity;
+      let touchGesture = null;
       const pointer = {
         x: 0, y: 0, targetX: 0, targetY: 0, lastX: 0, lastY: 0,
         lastMove: -Infinity, nearbySince: -Infinity, speed: 0
@@ -1426,9 +1491,17 @@
         }
         scale = nextScale;
         ctx.setTransform(scale, 0, 0, scale, 0, 0);
-        centerX = width * (compact.matches ? .5 : .655);
-        centerY = height * (compact.matches ? .58 : .506);
-        unit = compact.matches ? Math.min(width * .36, height * .248) : Math.min(width * .263, height * .405);
+        const artBox = artSpace.getBoundingClientRect();
+        if (artBox.width > 0 && artBox.height > 0) {
+          const canvasBox = canvas.getBoundingClientRect();
+          centerX = artBox.left - canvasBox.left + artBox.width / 2;
+          centerY = artBox.top - canvasBox.top + artBox.height * .46;
+          unit = Math.min(artBox.width * .405, artBox.height * .395);
+        } else {
+          centerX = width * .655;
+          centerY = height * .506;
+          unit = Math.min(width * .263, height * .405);
+        }
         if (!document.hidden) paint(performance.now());
       }
 
@@ -1491,7 +1564,7 @@
       }
 
       function coordinates(event) {
-        const bounds = stage.getBoundingClientRect();
+        const bounds = canvas.getBoundingClientRect();
         return [
           clamp((event.clientX - bounds.left) / width, 0, 1),
           clamp((event.clientY - bounds.top) / height, 0, 1)
@@ -1551,6 +1624,41 @@
         }
         updateVitals(timestamp, true);
         paint(timestamp);
+      }
+
+      function pointerStart(event) {
+        if (event.pointerType !== "touch") {
+          touchLife(event);
+          return;
+        }
+        if (!event.isPrimary || event.target.closest("button")) return;
+        touchGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, started: performance.now(), dragged: false };
+        if (!zen) setPointer(event);
+      }
+
+      function pointerMove(event) {
+        if (event.pointerType === "touch") {
+          if (!touchGesture || touchGesture.id !== event.pointerId) return;
+          touchGesture.dragged ||= Math.hypot(event.clientX - touchGesture.x, event.clientY - touchGesture.y) > 12;
+          if (zen) return;
+        }
+        setPointer(event);
+      }
+
+      function pointerEnd(event) {
+        if (event.pointerType === "mouse") return;
+        if (touchGesture?.id === event.pointerId) {
+          const gesture = touchGesture;
+          touchGesture = null;
+          const closeToStart = Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) <= 12;
+          if (!gesture.dragged && closeToStart && performance.now() - gesture.started < 420) touchLife(event);
+        }
+        releasePointer();
+      }
+
+      function pointerCancel(event) {
+        if (touchGesture?.id === event.pointerId) touchGesture = null;
+        releasePointer();
       }
 
       function toggleZen() {
@@ -1638,11 +1746,11 @@
       zenButton.addEventListener("click", toggleZen);
       fullscreenButton.addEventListener("click", toggleFullscreen);
       document.addEventListener("fullscreenchange", () => fullscreenButton.setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
-      stage.addEventListener("pointermove", setPointer, { passive: true });
-      stage.addEventListener("pointerleave", releasePointer);
-      stage.addEventListener("pointercancel", releasePointer);
-      stage.addEventListener("pointerup", event => { if (event.pointerType !== "mouse") releasePointer(); });
-      stage.addEventListener("pointerdown", touchLife);
+      stage.addEventListener("pointermove", pointerMove, { passive: true });
+      stage.addEventListener("pointerleave", pointerCancel);
+      stage.addEventListener("pointercancel", pointerCancel);
+      stage.addEventListener("pointerup", pointerEnd);
+      stage.addEventListener("pointerdown", pointerStart);
       document.addEventListener("keydown", event => {
         if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
         if (event.key.toLowerCase() === "z" || (event.key === "Escape" && zen)) toggleZen();
@@ -1655,6 +1763,7 @@
         if (document.hidden) {
           cancelAnimationFrame(frame);
           frame = 0;
+          touchGesture = null;
           releasePointer();
           saveVitals();
         } else if (!frame) {
@@ -1663,7 +1772,9 @@
         }
       });
       window.addEventListener("pagehide", saveVitals);
-      new ResizeObserver(resize).observe(stage);
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(stage);
+      resizeObserver.observe(artSpace);
       window.addEventListener("resize", resize, { passive: true });
       motion.addEventListener("change", () => {
         pulses.length = 0;
