@@ -135,6 +135,23 @@
       letter-spacing: .14em;
       text-transform: uppercase;
     }
+    .vitals {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 24px;
+      margin: 14px 0 0 3px;
+      color: var(--accent);
+      font-size: .8rem;
+    }
+    .breath-wave { width: 46px; height: 16px; opacity: .9; transform-origin: 50% 50%; }
+    .breath-wave path { vector-effect: non-scaling-stroke; }
+    .life-status {
+      margin: 5px 0 0 3px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-variant-numeric: tabular-nums;
+    }
     .specimen {
       position: absolute;
       z-index: 2;
@@ -151,17 +168,30 @@
       font: italic 400 clamp(1.45rem, 2.9vw, 3rem)/1.1 var(--serif);
       text-shadow: 0 3px 20px #080807;
     }
-    .hint {
+    .field-notes {
       position: absolute;
       z-index: 2;
       bottom: clamp(18px, 3vw, 34px);
       left: clamp(20px, 4vw, 56px);
-      max-width: 48%;
-      margin: 0;
-      color: var(--muted);
-      font-size: .84rem;
-      pointer-events: none;
+      max-width: min(44%, 325px);
     }
+    .hint { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.4; }
+    .sunlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+      min-height: 28px;
+      margin-top: 7px;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      text-align: left;
+      font-size: .75rem;
+    }
+    .sunlight:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .sunlight:disabled { cursor: wait; opacity: .75; }
+    .sunlight svg { width: 16px; height: 16px; flex: none; }
 
     .catalog {
       display: grid;
@@ -239,8 +269,9 @@
 
     body.zen .installation { padding: 0; display: block; }
     body.zen .stage { height: 100vh; height: 100svh; border: 0; }
-    body.zen .masthead, body.zen .catalog, body.zen .hint,
-    body.zen .specimen, body.zen .stage-label { display: none; }
+    body.zen .masthead, body.zen .catalog, body.zen .field-notes,
+    body.zen .specimen, body.zen .stage-label, body.zen .vitals,
+    body.zen .life-status { display: none; }
 
     @media (max-width: 940px) {
       .installation { grid-template-rows: auto minmax(420px, 1fr) auto; }
@@ -266,7 +297,11 @@
       .clock { top: 56px; transform: none; }
       .clock time { font-size: clamp(3.6rem, 15vw, 6rem); }
       .date { margin: 7px 0 0 2px; font-size: .69rem; letter-spacing: .095em; }
+      .vitals { margin-top: 8px; min-height: 18px; font-size: .72rem; }
+      .life-status { margin-top: 3px; font-size: .7rem; }
+      .field-notes { max-width: 53%; }
       .hint { font-size: .74rem; }
+      .sunlight { margin-top: 3px; font-size: .7rem; }
       .specimen .caption { font-size: .68rem; }
       .catalog { padding-block: 12px; }
       .catalog h2 { font-size: 1.25rem; }
@@ -308,15 +343,27 @@
         </button>
       </div>
     </header>
-    <section class="stage" id="stage" aria-label="Canlı saat" data-label="stage" tabindex="-1">
+    <section class="stage" id="stage" aria-label="Canlı saat" data-label="stage" aria-describedby="care-hint care-key" tabindex="0">
       <canvas id="art" aria-hidden="true"></canvas>
       <p class="notice" id="notice" aria-hidden="true" hidden></p>
-      <span class="stage-label" data-text="local">Yerel zaman</span>
+      <span class="stage-label" id="light-status">Yerel zaman</span>
       <div class="clock">
         <time id="time"></time>
         <p class="date" id="date"></p>
+        <div class="vitals">
+          <svg class="breath-wave" id="breath-wave" viewBox="0 0 48 16" aria-hidden="true"><path d="M1 9c7 0 8-7 16-7 7 0 10 11 16 11 5 0 8-4 14-4"/></svg>
+          <span id="breath-label"></span>
+        </div>
+        <p class="life-status" id="life-status"></p>
       </div>
-      <p class="hint" data-text="hint">Hareket et ya da dokun.</p>
+      <div class="field-notes">
+        <p class="hint" id="care-hint" data-text="hint">Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.</p>
+        <span class="sr-only" id="care-key" data-text="careKey">Sahne odaktayken boşluk tuşu formu besler.</span>
+        <button type="button" class="sunlight" id="sunlight" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2"/></svg>
+          <span id="sunlight-label">Güneş ışığını eşle</span>
+        </button>
+      </div>
       <div class="specimen">
         <span class="caption" id="signature"></span>
         <span class="specimen-name" id="specimen-name"></span>
@@ -370,6 +417,12 @@
       const signatureNode = document.getElementById("signature");
       const announcement = document.getElementById("announcement");
       const notice = document.getElementById("notice");
+      const lightStatus = document.getElementById("light-status");
+      const breathWave = document.getElementById("breath-wave");
+      const breathLabel = document.getElementById("breath-label");
+      const lifeStatus = document.getElementById("life-status");
+      const sunButton = document.getElementById("sunlight");
+      const sunLabel = document.getElementById("sunlight-label");
       const zenButton = document.getElementById("zen");
       const fullscreenButton = document.getElementById("fullscreen");
       const formButtons = document.querySelectorAll("[data-form]");
@@ -392,7 +445,15 @@
           title: "Living Clock — Zaman canlıdır",
           description: "Zamanla evrilen yaşam biçimleri üzerine etkileşimli bir dijital enstalasyon.",
           subtitle: "Dijital enstalasyon", local: "Yerel zaman", stage: "Canlı saat ve etkileşimli yaşam formu",
-          forms: "Yaşam biçimleri", hint: "Hareket et ya da dokun.", mutation: "Yeni yaşam", hybrid: "Melez",
+          forms: "Yaşam biçimleri", mutation: "Yeni yaşam", hybrid: "Melez",
+          hint: "Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.",
+          careKey: "Sahne odaktayken boşluk tuşu formu besler.",
+          inhale: "Nefes alıyor", exhale: "Nefes veriyor", breathCycle: "Nefes döngüsü", resting: "Sakin", growing: "Besleniyor",
+          tense: "Gerildi", healing: "Yenileniyor", growth: "Gelişim", broken: "Bir uzantı koptu. Yeniden büyüyebilir.",
+          sun: "Güneş ışığını eşle", sunOff: "Konum eşlemesini kapat", sunWait: "Güneş hesaplanıyor…",
+          sunError: "Konum alınamadı. Işık yerel saate göre tahmin ediliyor.",
+          sunTitle: "İzin verirsen güneşin konumu bu oturumda cihazında hesaplanır.",
+          day: "Gün ışığı", twilight: "Alacakaranlık", night: "Gece",
           veil: "Peçe", root: "Kök", spore: "Spor", fold: "Kıvrım", colony: "Koloni", filament: "Lif",
           fullscreen: "Tam ekran", zen: "Zen modu", save: "PNG olarak kaydet",
           fullscreenError: "Bu tarayıcıda tam ekran açılamadı.",
@@ -402,7 +463,15 @@
           title: "Living Clock — Time is alive",
           description: "An interactive digital installation about life forms that evolve with time.",
           subtitle: "Digital installation", local: "Local time", stage: "Live clock and interactive life form",
-          forms: "Life forms", hint: "Move or touch to interact.", mutation: "New life", hybrid: "Hybrid",
+          forms: "Life forms", mutation: "New life", hybrid: "Hybrid",
+          hint: "Linger nearby or move slowly. Rapid taps can damage its limbs.",
+          careKey: "Focus the stage and press Space to nourish the form.",
+          inhale: "Breathing in", exhale: "Breathing out", breathCycle: "Breathing cycle", resting: "At rest", growing: "Feeding",
+          tense: "Tense", healing: "Regenerating", growth: "Growth", broken: "A limb broke off. It can grow back.",
+          sun: "Match sunlight", sunOff: "Stop using location", sunWait: "Calculating sunlight…",
+          sunError: "Location unavailable. Light is estimated from local time.",
+          sunTitle: "If you allow it, your device calculates the sun’s position for this session.",
+          day: "Daylight", twilight: "Twilight", night: "Night",
           veil: "Veil", root: "Root", spore: "Spore", fold: "Fold", colony: "Colony", filament: "Filament",
           fullscreen: "Fullscreen", zen: "Zen mode", save: "Save as PNG",
           fullscreenError: "Fullscreen could not open in this browser.",
@@ -432,11 +501,205 @@
       let current, outgoing;
       let zen = false, focusBeforeZen, noticeTimer = 0;
       let hueOfHour = 0, lightOfHour = 0;
-      const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      let daylight, solarPosition = null, sunPending = false, lastSunMinute = null;
+      let lastVitalPaint = 0, lastSave = 0, impactAt = -Infinity;
+      let keyboardCareUntil = -Infinity;
+      const pointer = {
+        x: 0, y: 0, targetX: 0, targetY: 0, lastX: 0, lastY: 0,
+        lastMove: -Infinity, nearbySince: -Infinity, speed: 0
+      };
       const pulses = [];
+      const taps = [];
+      const fragments = [];
 
       const mix = (a, b, q) => a + (b - a) * q;
       const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
+      const ease = q => q * q * (3 - 2 * q);
+
+      function sunlight(now, position) {
+        const hours = now.getHours() + now.getMinutes() / 60;
+        let elevation;
+        if (position) {
+          // NOAA's approximate solar position equations, evaluated with UTC hours.
+          const year = now.getUTCFullYear();
+          const start = Date.UTC(year, 0, 1);
+          const days = (Date.UTC(year + 1, 0, 1) - start) / 86400000;
+          const gamma = TAU / days * ((now.getTime() - start) / 86400000 - .5);
+          const eqTime = 229.18 * (.000075 + .001868 * Math.cos(gamma) - .032077 * Math.sin(gamma)
+            - .014615 * Math.cos(2 * gamma) - .040849 * Math.sin(2 * gamma));
+          const decl = .006918 - .399912 * Math.cos(gamma) + .070257 * Math.sin(gamma)
+            - .006758 * Math.cos(2 * gamma) + .000907 * Math.sin(2 * gamma)
+            - .002697 * Math.cos(3 * gamma) + .00148 * Math.sin(3 * gamma);
+          const radians = Math.PI / 180;
+          const latitude = position.latitude * radians;
+          const solarMinutes = now.getUTCHours() * 60 + now.getUTCMinutes() + eqTime + 4 * position.longitude;
+          const hourAngle = (solarMinutes / 4 - 180) * radians;
+          elevation = Math.asin(clamp(Math.sin(latitude) * Math.sin(decl)
+            + Math.cos(latitude) * Math.cos(decl) * Math.cos(hourAngle), -1, 1));
+        } else {
+          elevation = Math.cos((hours - 12.5) / 24 * TAU) * .92;
+        }
+        return {
+          intensity: ease(clamp((elevation + .12) / .9, 0, 1)),
+          season: elevation > .13 ? "day" : elevation > -.13 ? "twilight" : "night"
+        };
+      }
+
+      function refreshLight(now) {
+        const minute = Math.floor(now.getTime() / 60000);
+        if (minute === lastSunMinute) return;
+        lastSunMinute = minute;
+        daylight = sunlight(now, solarPosition);
+        lightStatus.textContent = labels[language].local + " · " + labels[language][daylight.season];
+      }
+
+      function updateSunButton() {
+        const text = labels[language];
+        sunLabel.textContent = sunPending ? text.sunWait : solarPosition ? text.sunOff : text.sun;
+        sunButton.disabled = sunPending;
+        sunButton.setAttribute("aria-pressed", String(Boolean(solarPosition)));
+        sunButton.title = text.sunTitle;
+        lastSunMinute = null;
+        refreshLight(new Date());
+      }
+
+      function toggleSunlight() {
+        if (solarPosition) {
+          solarPosition = null;
+          updateSunButton();
+          return;
+        }
+        if (!navigator.geolocation) {
+          notify(labels[language].sunError);
+          return;
+        }
+        sunPending = true;
+        updateSunButton();
+        navigator.geolocation.getCurrentPosition(({ coords }) => {
+          solarPosition = {
+            latitude: Math.round(coords.latitude * 4) / 4,
+            longitude: Math.round(coords.longitude * 4) / 4
+          };
+          sunPending = false;
+          updateSunButton();
+        }, () => {
+          sunPending = false;
+          updateSunButton();
+          notify(labels[language].sunError);
+        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+      }
+
+      function makeLimbs(life) {
+        const random = randFrom(life.seed ^ 0x6CA5E133);
+        return Array.from({ length: 8 + Math.floor(random() * 5) }, (_, index) => {
+          return { index, phase: random() * TAU, length: random(), curve: random() - .5, damage: 0, screen: null };
+        });
+      }
+
+      function freshVitals() {
+        return {
+          updated: Date.now(), energy: .62, condition: .08, stress: 0,
+          growth: .055, light: sunlight(new Date(), solarPosition).intensity,
+          biasX: 0, biasY: 0, care: 0, breath: 0
+        };
+      }
+
+      function readVitals(life) {
+        let saved;
+        try { saved = JSON.parse(restore("vitals", "null")); }
+        catch { return; }
+        if (!saved || saved.seed !== life.seed || !Number.isFinite(saved.updated)) return;
+        const vitals = life.vitals;
+        vitals.updated = saved.updated;
+        for (const key of ["energy", "condition", "stress", "light"]) {
+          if (Number.isFinite(saved[key])) vitals[key] = clamp(saved[key], 0, 1);
+        }
+        if (Number.isFinite(saved.growth)) vitals.growth = clamp(saved.growth, 0, 6);
+        for (const key of ["biasX", "biasY"]) {
+          if (Number.isFinite(saved[key])) vitals[key] = clamp(saved[key], -1, 1);
+        }
+        if (Array.isArray(saved.limbs)) {
+          life.limbs.forEach((limb, index) => {
+            if (Number.isFinite(saved.limbs[index])) limb.damage = clamp(saved.limbs[index], 0, 1);
+          });
+        }
+      }
+
+      function saveVitals() {
+        const { updated, energy, condition, stress, growth, light, biasX, biasY } = current.vitals;
+        persist("vitals", JSON.stringify({
+          seed: current.seed, updated, energy, condition, stress, growth, light, biasX, biasY,
+          limbs: current.limbs.map(limb => limb.damage)
+        }));
+        lastSave = Date.now();
+      }
+
+      function development(life, seconds, light, care, x = 0, y = 0) {
+        const v = life.vitals;
+        v.light += (light - v.light) * (1 - Math.exp(-seconds / 42));
+        v.stress *= Math.exp(-seconds * (.12 + care * .43));
+        v.care += (care - v.care) * (1 - Math.exp(-seconds / 1.3));
+        const reserve = .46 + v.light * .26 + care * .26;
+        v.energy += (reserve - v.energy) * (1 - Math.exp(-seconds / (care > 0 ? 11 : 180)));
+        v.condition += (care - v.condition) * (1 - Math.exp(-seconds / (care > 0 ? 22 : 2700)));
+        const pace = (.00024 + v.light * .00044 + care * .014 + v.condition * .00055)
+          / (1 + Math.max(0, v.growth - .55) * 2.8);
+        v.growth = Math.min(6, v.growth + pace * (.50 + .68 * v.energy) * (1 - v.stress * .68) * seconds);
+        if (care > 0) {
+          const response = 1 - Math.exp(-seconds * care / 18);
+          v.biasX += (x - v.biasX) * response;
+          v.biasY += (y - v.biasY) * response;
+        }
+        const repair = (.0035 + v.light * .0015 + care * .020) * (1 - v.stress * .78);
+        for (const limb of life.limbs) limb.damage = Math.max(0, limb.damage - seconds * repair);
+      }
+
+      function careFromPointer(timestamp) {
+        if (timestamp < keyboardCareUntil) return .85;
+        if (!Number.isFinite(pointer.nearbySince) || timestamp - pointer.nearbySince < 650
+          || timestamp - impactAt < 850) return 0;
+        if (timestamp - pointer.lastMove > 225) return .76;
+        return pointer.speed < 1.5 ? .86 : 0;
+      }
+
+      function advanceLife(life, now, care = 0) {
+        const v = life.vitals;
+        const until = now.getTime();
+        const elapsed = (until - v.updated) / 1000;
+        if (elapsed < 0) v.updated = until;
+        if (elapsed < .15) return;
+        if (elapsed < 5) {
+          development(life, elapsed, daylight.intensity, care, pointer.targetX, pointer.targetY);
+        } else {
+          // Integrate light during inactive time without animating a hidden tab.
+          let remaining = Math.min(elapsed, 86400 * 7);
+          while (remaining > 0) {
+            const chunk = Math.min(remaining, 900);
+            const moment = new Date(until - (remaining - chunk / 2) * 1000);
+            development(life, chunk, sunlight(moment, solarPosition).intensity, 0);
+            remaining -= chunk;
+          }
+        }
+        v.updated = until;
+      }
+
+      function updateVitals(timestamp, force = false) {
+        if (!force && timestamp - lastVitalPaint < 110) return;
+        lastVitalPaint = timestamp;
+        const v = current.vitals;
+        const text = labels[language];
+        const breathing = Math.sin(v.breath - .55);
+        const lifting = Math.cos(v.breath - .55) >= 0;
+        const activityKey = current.limbs.some(limb => limb.damage > .14) ? "healing"
+          : v.stress > .25 ? "tense" : v.care > .30 ? "growing" : "resting";
+        const phaseText = motion.matches ? text.breathCycle : lifting ? text.inhale : text.exhale;
+        if (breathLabel.textContent !== phaseText) breathLabel.textContent = phaseText;
+        const growth = Math.round((1 - Math.exp(-v.growth)) * 100);
+        const status = text[activityKey] + " · " + text.growth + " " + growth + "%";
+        if (lifeStatus.textContent !== status) lifeStatus.textContent = status;
+        breathWave.style.transform = motion.matches ? "none" : "scaleY(" + (.74 + breathing * .38) + ")";
+      }
+
       function randFrom(seed) {
         return () => {
           seed = (seed + 0x6D2B79F5) >>> 0;
@@ -477,9 +740,15 @@
             angle: random() * TAU, depth: random(), size: .001 + random() ** 2 * .005
           }));
         }
-        if (anatomy === "root" || secondary === "root") traits.branches = makeBranches(random);
+        if (anatomy === "root" || secondary === "root") {
+          traits.branches = makeBranches(random);
+          const span = Math.max(...traits.branches.map(branch => Math.hypot(branch.nx, branch.ny)));
+          traits.rootScale = Math.min(1, 1.13 / span);
+        }
         if (anatomy === "spore" || secondary === "spore") traits.spores = makeSpores(random);
         if (anatomy === "colony" || secondary === "colony") traits.cells = makeCells(random);
+        traits.limbs = makeLimbs(traits);
+        traits.vitals = freshVitals();
         return traits;
       }
 
@@ -678,6 +947,8 @@
       }
 
       function root(life, t, beat) {
+        ctx.save();
+        ctx.scale(life.rootScale, life.rootScale);
         halo(life, 0, 0, .66, .17, 30);
         const current = Math.sin(t) * .047;
         for (const branch of life.branches) {
@@ -706,6 +977,7 @@
             ctx.fill();
           }
         }
+        ctx.restore();
       }
 
       function spore(life, t, beat) {
@@ -848,10 +1120,150 @@
 
       const painters = { veil, root, spore, fold, colony, filament };
 
+      function drawLimbs(life, t, breath) {
+        const v = life.vitals;
+        const maturity = 1 - Math.exp(-v.growth);
+        const matrix = life === current ? ctx.getTransform() : null;
+        const tentacles = life.anatomy === "veil";
+        const radialShift = life.phase + .12 * v.biasX;
+        for (const limb of life.limbs) {
+          const { index, phase, length, curve, damage } = limb;
+          const bud = index < 6 ? 1 : ease(clamp((maturity - (index - 6) * .09) / .24, 0, 1));
+          if (bud < .04) {
+            limb.screen = null;
+            continue;
+          }
+          const lane = index < 6 ? mix(-.9, .9, index / 5) : Math.sin(index * GOLDEN_ANGLE) * .92;
+          const angle = tentacles ? Math.PI * .5 - lane * .48 : index * GOLDEN_ANGLE + radialShift;
+          const dx = Math.cos(angle);
+          const dy = Math.sin(angle);
+          const ax = tentacles ? lane * .73 * life.width : dx * (.32 + length * .24);
+          const ay = tentacles ? -.23 + (1 - lane * lane) * .10 : dy * (.32 + length * .24);
+          const towardCare = (dx * v.biasX + dy * v.biasY) * .17;
+          const grown = (.68 + maturity * .43 + towardCare) * bud;
+          const reach = (tentacles ? .62 + length * .45 : .30 + length * .43) * grown * (1 - damage * .91);
+          const float = Math.sin(t * (.88 + length * .3) + phase - breath * .7) * (.18 + v.energy * .11);
+          const bend = (float + curve * .65) * reach + pointer.x * reach * .09;
+          const ex = ax + dx * reach - dy * bend + towardCare * reach;
+          const ey = ay + dy * reach + dx * bend;
+          const cx = ax + dx * reach * .48 - dy * bend * 1.6;
+          const cy = ay + dy * reach * .48 + dx * bend * 1.6;
+          if (matrix) {
+            limb.screen = {
+              x: (matrix.a * ex + matrix.c * ey + matrix.e) / scale,
+              y: (matrix.b * ex + matrix.d * ey + matrix.f) / scale,
+              rootX: (matrix.a * ax + matrix.c * ay + matrix.e) / scale,
+              rootY: (matrix.b * ax + matrix.d * ay + matrix.f) / scale
+            };
+          }
+
+          const softTissue = tentacles || life.anatomy === "fold";
+          const thickness = (softTissue ? .029 : .017) * (.60 + .53 * length) * (.68 + maturity * .5);
+          const shade = ctx.createLinearGradient(ax, ay, ex, ey);
+          shade.addColorStop(0, pigment(life, 4, 16, .20 * bud));
+          shade.addColorStop(.56, pigment(life, 9 + damage * 22, 10, .56 * bud));
+          shade.addColorStop(1, pigment(life, 24 + damage * 22, 28, (.52 + v.care * .26) * bud));
+          ctx.beginPath();
+          ctx.moveTo(ax - dy * thickness, ay + dx * thickness);
+          ctx.quadraticCurveTo(cx - dy * thickness, cy + dx * thickness, ex, ey);
+          ctx.quadraticCurveTo(cx + dy * thickness, cy - dx * thickness, ax + dy * thickness, ay - dx * thickness);
+          ctx.closePath();
+          ctx.fillStyle = shade;
+          ctx.fill();
+          ctx.strokeStyle = pigment(life, 14, 21, .32 * bud);
+          ctx.lineWidth = .0023;
+          ctx.stroke();
+
+          const node = (.010 + length * .014) * (.55 + bud * .45) * (1 - damage * .52);
+          ctx.beginPath();
+          ctx.ellipse(ex, ey, node * (life.anatomy === "spore" ? 1.95 : 1), node * .78, angle, 0, TAU);
+          ctx.fillStyle = pigment(life, 25 + damage * 48, 27, (.43 + v.care * .25) * bud);
+          ctx.fill();
+          if (damage > .68) halo(life, ex, ey, .12, .17, -22);
+          if (maturity > .15 && damage < .4 && !softTissue) {
+            const twig = .06 + maturity * (.06 + length * .09);
+            ctx.beginPath();
+            ctx.moveTo(mix(cx, ex, .48), mix(cy, ey, .48));
+            ctx.quadraticCurveTo(ex + dy * twig * .6, ey - dx * twig * .6, ex + dy * twig, ey - dx * twig);
+            ctx.strokeStyle = pigment(life, 22, 20, .55 * bud);
+            ctx.lineWidth = .004;
+            ctx.stroke();
+          }
+        }
+      }
+
+      function nearbyLimb(x, y) {
+        let closest, distance = Infinity;
+        for (const limb of current.limbs) {
+          if (!limb.screen || limb.damage >= .55) continue;
+          const { x: endX, y: endY, rootX, rootY } = limb.screen;
+          const markX = mix(rootX, endX, .72);
+          const markY = mix(rootY, endY, .72);
+          const next = Math.hypot(x - markX, y - markY);
+          if (next < distance) {
+            closest = limb;
+            distance = next;
+          }
+        }
+        return closest;
+      }
+
+      function severLimb(limb, timestamp) {
+        limb.damage = 1;
+        const { x, y, rootX, rootY } = limb.screen;
+        if (!motion.matches) {
+          fragments.push({
+            life: current, born: timestamp, x, y,
+            dx: (x - rootX) * .74, dy: (y - rootY) * .74
+          });
+        }
+        current.vitals.stress = Math.max(.63, current.vitals.stress);
+        current.vitals.energy = Math.max(.12, current.vitals.energy - .10);
+        taps.length = 0;
+        saveVitals();
+        notify(labels[language].broken);
+        updateVitals(timestamp, true);
+      }
+
+      function drawFragments(timestamp) {
+        for (let i = fragments.length - 1; i >= 0; i--) {
+          const item = fragments[i];
+          const age = Math.max(0, (timestamp - item.born) / 2800);
+          if (age >= 1) {
+            fragments.splice(i, 1);
+            continue;
+          }
+          const x = item.x + item.dx * age * .85;
+          const y = item.y + item.dy * age * .66 + age * age * unit * .22;
+          const tail = 1 - age * .72;
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(age * 2.2);
+          ctx.beginPath();
+          ctx.moveTo(-item.dx * tail * .72, -item.dy * tail * .72);
+          ctx.quadraticCurveTo(-item.dx * .16 + item.dy * .23, -item.dy * .16 - item.dx * .23, 0, 0);
+          ctx.strokeStyle = pigment(item.life, 19, 24, (1 - age) * .84);
+          ctx.lineWidth = Math.max(1, unit * .012 * tail);
+          ctx.stroke();
+          for (let j = 1; j <= 5; j++) {
+            const phase = age * 2 + j * GOLDEN_ANGLE;
+            const spread = age * unit * (.1 + j * .04);
+            ctx.beginPath();
+            ctx.arc(Math.cos(phase) * spread, Math.sin(phase) * spread, Math.max(.7, unit * .007 * tail), 0, TAU);
+            ctx.fillStyle = pigment(item.life, 31, 26, (1 - age) * .72);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
       function habitat(life, t, airHue) {
-        const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * .75);
-        glow.addColorStop(0, "hsl(" + (airHue + hueOfHour + 9) + ",35%," + (13 + lightOfHour * .24) + "%)");
-        glow.addColorStop(.43, "#151512");
+        const light = daylight.intensity;
+        const lightX = centerX - width * .12 * light;
+        const lightY = centerY - height * light * .22;
+        const glow = ctx.createRadialGradient(lightX, lightY, 0, lightX, lightY, Math.max(width, height) * .75);
+        glow.addColorStop(0, "hsl(" + (airHue + hueOfHour + 9) + ",35%," + (10 + light * 8) + "%)");
+        glow.addColorStop(.43, light > .1 ? "#171611" : "#111214");
         glow.addColorStop(1, "#0d0d0b");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, width, height);
@@ -863,23 +1275,27 @@
       }
 
       function drawLife(life, now, timestamp, opacity, awake) {
-        const t = (motion.matches ? 0 : timestamp * .001) * life.speed + life.phase;
+        const v = life.vitals;
+        const t = (motion.matches ? 0 : timestamp * .001) * life.speed + life.phase + v.growth * .69;
         const seconds = motion.matches ? 0 : now.getSeconds() + now.getMilliseconds() / 1000;
-        const breath = Math.sin(t * 1.4 + seconds * .025);
+        const breath = motion.matches ? 0 : Math.sin(v.breath - .55);
         const tide = Math.sin(now.getMinutes() / 60 * TAU) * .085;
         const latest = pulses[pulses.length - 1];
         const age = latest && !motion.matches ? Math.max(0, timestamp - latest.born) / 1000 : 9;
         const recoil = Math.sin(age * 12) * Math.exp(-age * 4) * .065;
-        const expansion = 1 + breath * .045 + tide * .28 + awake * .025 + recoil;
+        const maturity = 1 - Math.exp(-v.growth);
+        const expansion = .96 + maturity * .15 + breath * (.07 + v.energy * .055) + tide * .16 + awake * .025 + recoil;
         ctx.save();
         ctx.globalAlpha = opacity;
-        ctx.translate(centerX + pointer.x * unit * .14, centerY + pointer.y * unit * .095);
-        ctx.scale(unit * expansion, unit * expansion);
-        ctx.rotate(life.tilt + Math.sin(t * .36) * .09 + pointer.x * .11 + recoil * .8);
-        halo(life, -.04, -.12, 1.37, .085 + awake * .10, -12);
+        ctx.translate(centerX + (pointer.x * .14 + v.biasX * .12) * unit,
+          centerY + (pointer.y * .095 + v.biasY * .075 - breath * .047) * unit);
+        ctx.scale(unit * expansion, unit * (expansion + breath * .065));
+        ctx.rotate(life.tilt + Math.sin(t * .36) * .09 + pointer.x * .11 + recoil * .8 + v.biasX * .13);
+        halo(life, -.04, -.12, 1.37, .072 + awake * .10 + (breath + 1) * v.energy * .043 + v.care * .095, -12);
+        drawLimbs(life, t, breath);
         ctx.save();
-        ctx.scale(1, 1 + tide);
-        painters[life.anatomy](life, t, breath);
+        ctx.scale(1, 1 + tide + breath * .04);
+        painters[life.anatomy](life, t + seconds * .0015, breath);
         ctx.restore();
         if (life.secondary) {
           ctx.save();
@@ -946,9 +1362,15 @@
       function paint(timestamp) {
         const now = new Date();
         clock(now, timestamp);
-        const hourPhase = (now.getHours() + now.getMinutes() / 60 - 13) / 24 * TAU;
-        hueOfHour = Math.sin(hourPhase) * 9;
-        lightOfHour = Math.cos(hourPhase) * 4;
+        refreshLight(now);
+        advanceLife(current, now, careFromPointer(timestamp));
+        if (now.getTime() - lastSave >= 5000) saveVitals();
+        const dt = lastPaint ? clamp((timestamp - lastPaint) / 1000, 0, .1) : 0;
+        const v = current.vitals;
+        v.breath = (v.breath + dt * (1.04 + v.stress * 1.9 + v.light * .30 - v.care * .15)) % TAU;
+        if (outgoing) outgoing.vitals.breath = (outgoing.vitals.breath + dt * 1.04) % TAU;
+        hueOfHour = mix(-20, 9, daylight.intensity) + (v.light - .5) * 8;
+        lightOfHour = mix(1, 6, daylight.intensity) - v.stress * 10 + v.care * 6;
         const response = motion.matches ? 1 : .082;
         pointer.x += (pointer.targetX - pointer.x) * response;
         pointer.y += (pointer.targetY - pointer.y) * response;
@@ -961,7 +1383,10 @@
         if (outgoing && blend < 1) drawLife(outgoing, now, timestamp, 1 - blend, awake);
         else outgoing = null;
         drawLife(current, now, timestamp, blend, awake);
-        if (!motion.matches) drawWaves(current, timestamp);
+        if (!motion.matches) {
+          drawWaves(current, timestamp);
+          drawFragments(timestamp);
+        }
         if (awake > 0) {
           ctx.save();
           ctx.translate(centerX, centerY);
@@ -969,6 +1394,7 @@
           halo(current, 0, 0, 1.9, awake * .2, 40);
           ctx.restore();
         }
+        updateVitals(timestamp);
       }
 
       function loop(timestamp) {
@@ -995,7 +1421,7 @@
         ctx.setTransform(scale, 0, 0, scale, 0, 0);
         centerX = width * (compact.matches ? .5 : .655);
         centerY = height * (compact.matches ? .58 : .506);
-        unit = compact.matches ? Math.min(width * .39, height * .269) : Math.min(width * .263, height * .405);
+        unit = compact.matches ? Math.min(width * .36, height * .248) : Math.min(width * .263, height * .405);
         if (!document.hidden) paint(performance.now());
       }
 
@@ -1034,6 +1460,8 @@
         lastSecond = -1;
         clock(new Date(), performance.now());
         updateSpecimen();
+        updateSunButton();
+        updateVitals(performance.now(), true);
       }
 
       function spawn(family) {
@@ -1042,9 +1470,16 @@
         outgoing = current;
         current = makeLife(family, seed);
         born = now;
+        impactAt = -Infinity;
+        keyboardCareUntil = -Infinity;
+        taps.length = 0;
+        fragments.length = 0;
         persist("family", family);
         persist("seed", String(seed));
+        saveVitals();
+        notice.hidden = true;
         updateSpecimen(true);
+        updateVitals(now, true);
         paint(now);
       }
 
@@ -1060,10 +1495,55 @@
         const [x, y] = coordinates(event);
         pointer.targetX = (x - .5) * 2;
         pointer.targetY = (y - .5) * 2;
+        const px = x * width, py = y * height;
+        const now = performance.now();
+        const dt = (now - pointer.lastMove) / 1000;
+        pointer.speed = Number.isFinite(dt) && dt > .008 && dt < .4
+          ? Math.hypot(px - pointer.lastX, py - pointer.lastY) / (unit * dt) : 0;
+        pointer.lastX = px;
+        pointer.lastY = py;
+        pointer.lastMove = now;
+        const distance = Math.hypot((px - centerX) / 1.13, py - centerY);
+        if (distance <= unit * 1.32) {
+          if (!Number.isFinite(pointer.nearbySince)) pointer.nearbySince = now;
+        } else {
+          pointer.nearbySince = -Infinity;
+        }
       }
 
       function releasePointer() {
         pointer.targetX = pointer.targetY = 0;
+        pointer.nearbySince = pointer.lastMove = -Infinity;
+      }
+
+      function touchLife(event) {
+        if (event.button > 0 || event.target.closest("button")) return;
+        if (zen) {
+          toggleZen();
+          return;
+        }
+        setPointer(event);
+        const [x, y] = coordinates(event);
+        const timestamp = performance.now();
+        wave(x, y, timestamp);
+        if (Math.hypot((x * width - centerX) / 1.13, y * height - centerY) > unit * 1.40) return;
+        impactAt = timestamp;
+        const px = x * width, py = y * height;
+        while (taps.length && timestamp - taps[0].at > 1700) taps.shift();
+        let localHits = 1;
+        for (const tap of taps) {
+          if (Math.hypot(tap.x - px, tap.y - py) < unit * .52) localHits++;
+        }
+        taps.push({ x: px, y: py, at: timestamp });
+        const v = current.vitals;
+        v.stress = Math.min(1, v.stress + (localHits > 1 ? .13 : .025));
+        v.energy = Math.max(.12, v.energy - (localHits > 1 ? .022 : .004));
+        if (localHits >= 5) {
+          const limb = nearbyLimb(px, py);
+          if (limb) severLimb(limb, timestamp);
+        }
+        updateVitals(timestamp, true);
+        paint(timestamp);
       }
 
       function toggleZen() {
@@ -1141,11 +1621,13 @@
       const storedSeed = restore("seed", "");
       const seed = /^\d{1,10}$/.test(storedSeed) ? Number(storedSeed) >>> 0 : 0x67E2C3A1;
       current = makeLife(initial, seed, initial === "veil" && !storedSeed);
+      readVitals(current);
 
       for (const button of formButtons) button.addEventListener("click", () => spawn(button.dataset.form));
       for (const button of languageButtons) button.addEventListener("click", () => languageTo(button.dataset.lang));
       document.getElementById("mutation").addEventListener("click", () => spawn("hybrid"));
       document.getElementById("save").addEventListener("click", exportImage);
+      sunButton.addEventListener("click", toggleSunlight);
       zenButton.addEventListener("click", toggleZen);
       fullscreenButton.addEventListener("click", toggleFullscreen);
       document.addEventListener("fullscreenchange", () => fullscreenButton.setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
@@ -1153,33 +1635,32 @@
       stage.addEventListener("pointerleave", releasePointer);
       stage.addEventListener("pointercancel", releasePointer);
       stage.addEventListener("pointerup", event => { if (event.pointerType !== "mouse") releasePointer(); });
-      stage.addEventListener("pointerdown", event => {
-        if (zen) {
-          toggleZen();
-          return;
-        }
-        setPointer(event);
-        const [x, y] = coordinates(event);
-        wave(x, y, performance.now());
-      });
+      stage.addEventListener("pointerdown", touchLife);
       document.addEventListener("keydown", event => {
         if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
         if (event.key.toLowerCase() === "z" || (event.key === "Escape" && zen)) toggleZen();
+        if (event.code === "Space" && event.target === stage && !zen) {
+          event.preventDefault();
+          keyboardCareUntil = performance.now() + 5000;
+        }
       });
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           cancelAnimationFrame(frame);
           frame = 0;
           releasePointer();
+          saveVitals();
         } else if (!frame) {
           lastMinute = null;
           frame = requestAnimationFrame(loop);
         }
       });
+      window.addEventListener("pagehide", saveVitals);
       new ResizeObserver(resize).observe(stage);
       window.addEventListener("resize", resize, { passive: true });
       motion.addEventListener("change", () => {
         pulses.length = 0;
+        fragments.length = 0;
         paint(performance.now());
       });
       languageTo(language);
