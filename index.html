@@ -97,7 +97,18 @@
       pointer-events: none;
     }
     canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    .art-space { display: none; }
+    .art-space {
+      display: none;
+      position: relative;
+      z-index: 1;
+      touch-action: none;
+      touch-action: pinch-zoom;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .touch-hint { display: none; }
     .stage-label {
       display: flex;
       align-items: center;
@@ -321,7 +332,7 @@
       .date { margin: 7px 0 0 2px; font-size: .75rem; letter-spacing: .08em; }
       .vitals { margin-top: 8px; min-height: 18px; font-size: .72rem; }
       .life-status { margin-top: 3px; font-size: .7rem; }
-      .art-space { display: block; grid-area: art; pointer-events: none; }
+      .art-space { display: block; grid-area: art; }
       .field-notes { grid-area: notes; max-width: none; align-self: end; pointer-events: none; }
       .hint { font-size: .8rem; }
       .sunlight { min-height: 44px; margin-top: 0; font-size: .75rem; pointer-events: auto; }
@@ -380,6 +391,14 @@
       .languages button, .tool { min-width: 44px; min-height: 44px; }
       .sunlight, .mutation { min-height: 44px; }
     }
+    @media (any-pointer: coarse) {
+      .pointer-hint { display: none; }
+      .touch-hint { display: inline; }
+    }
+    @media (any-pointer: coarse) and (min-width: 801px) and (min-height: 501px),
+           (any-pointer: coarse) and (min-width: 961px) {
+      .art-space { display: block; position: absolute; inset: 10% 5% 12% 37%; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: .01ms !important; }
     }
@@ -428,7 +447,10 @@
       </div>
       <div class="art-space" id="art-space" aria-hidden="true"></div>
       <div class="field-notes">
-        <p class="hint" id="care-hint" data-text="hint">Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.</p>
+        <p class="hint" id="care-hint">
+          <span class="pointer-hint" data-text="hint">Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.</span>
+          <span class="touch-hint" data-text="touchHint">Parmağını formun üzerinde gezdir ya da beklet. Kaydırmak için sahnenin dışından başla.</span>
+        </p>
         <span class="sr-only" id="care-key" data-text="careKey">Sahne odaktayken boşluk tuşu formu besler.</span>
         <button type="button" class="sunlight" id="sunlight" aria-pressed="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2"/></svg>
@@ -518,6 +540,7 @@
           copyright: "Berkant Kul hak bildirimi", local: "Yerel zaman", stage: "Canlı saat ve etkileşimli yaşam formu",
           forms: "Yaşam biçimleri", mutation: "Yeni yaşam", hybrid: "Melez",
           hint: "Yakınında bekle ya da yavaşça gezin. Sık dokunmak uzantılarına zarar verir.",
+          touchHint: "Parmağını formun üzerinde gezdir ya da beklet. Kaydırmak için sahnenin dışından başla.",
           careKey: "Sahne odaktayken boşluk tuşu formu besler.",
           inhale: "Nefes alıyor", exhale: "Nefes veriyor", breathCycle: "Nefes döngüsü", resting: "Sakin", growing: "Besleniyor",
           tense: "Gerildi", healing: "Yenileniyor", growth: "Gelişim", broken: "Bir uzantı koptu. Yeniden büyüyebilir.",
@@ -536,6 +559,7 @@
           copyright: "Berkant Kul copyright notice", local: "Local time", stage: "Live clock and interactive life form",
           forms: "Life forms", mutation: "New life", hybrid: "Hybrid",
           hint: "Linger nearby or move slowly. Rapid taps can damage its limbs.",
+          touchHint: "Drag or hold your finger over the form. Scroll from outside the scene.",
           careKey: "Focus the stage and press Space to nourish the form.",
           inhale: "Breathing in", exhale: "Breathing out", breathCycle: "Breathing cycle", resting: "At rest", growing: "Feeding",
           tense: "Tense", healing: "Regenerating", growth: "Growth", broken: "A limb broke off. It can grow back.",
@@ -576,6 +600,7 @@
       let lastVitalPaint = 0, lastSave = 0, impactAt = -Infinity;
       let keyboardCareUntil = -Infinity;
       let touchGesture = null;
+      const finger = { x: .5, y: .5, fadeUntil: -Infinity };
       const pointer = {
         x: 0, y: 0, targetX: 0, targetY: 0, lastX: 0, lastY: 0,
         lastMove: -Infinity, nearbySince: -Infinity, speed: 0
@@ -728,10 +753,11 @@
 
       function careFromPointer(timestamp) {
         if (timestamp < keyboardCareUntil) return .85;
-        if (!Number.isFinite(pointer.nearbySince) || timestamp - pointer.nearbySince < 650
+        const fingerDown = touchGesture?.tracking;
+        if (!Number.isFinite(pointer.nearbySince) || timestamp - pointer.nearbySince < (fingerDown ? 260 : 650)
           || timestamp - impactAt < 850) return 0;
         if (timestamp - pointer.lastMove > 225) return .76;
-        return pointer.speed < 1.5 ? .86 : 0;
+        return pointer.speed < (fingerDown ? 2.5 : 1.5) ? .86 : 0;
       }
 
       function advanceLife(life, now, care = 0) {
@@ -1354,13 +1380,14 @@
         const tide = Math.sin(now.getMinutes() / 60 * TAU) * .085;
         const latest = pulses[pulses.length - 1];
         const age = latest && !motion.matches ? Math.max(0, timestamp - latest.born) / 1000 : 9;
-        const recoil = Math.sin(age * 12) * Math.exp(-age * 4) * .065;
+        const recoil = Math.sin(age * 12) * Math.exp(-age * 4) * (latest?.contact ? .13 : .065);
+        const pulled = touchGesture?.tracking ? .24 : .14;
         const maturity = 1 - Math.exp(-v.growth);
         const expansion = .96 + maturity * .15 + breath * (.07 + v.energy * .055) + tide * .16 + awake * .025 + recoil;
         ctx.save();
         ctx.globalAlpha = opacity;
-        ctx.translate(centerX + (pointer.x * .14 + v.biasX * .12) * unit,
-          centerY + (pointer.y * .095 + v.biasY * .075 - breath * .047) * unit);
+        ctx.translate(centerX + (pointer.x * pulled + v.biasX * .12) * unit,
+          centerY + (pointer.y * pulled * .72 + v.biasY * .075 - breath * .047) * unit);
         ctx.scale(unit * expansion, unit * (expansion + breath * .065));
         ctx.rotate(life.tilt + Math.sin(t * .36) * .09 + pointer.x * .11 + recoil * .8 + v.biasX * .13);
         halo(life, -.04, -.12, 1.37, .072 + awake * .10 + (breath + 1) * v.energy * .043 + v.care * .095, -12);
@@ -1382,21 +1409,22 @@
         ctx.restore();
       }
 
-      function wave(x, y, now, strong = false) {
+      function wave(x, y, now, strong = false, contact = false) {
         if (motion.matches) return;
         if (pulses.length >= 6) pulses.shift();
-        pulses.push({ x, y, born: now, strong });
+        pulses.push({ x, y, born: now, strong, contact });
       }
 
       function drawWaves(life, timestamp) {
         for (let i = pulses.length - 1; i >= 0; i--) {
           const pulse = pulses[i];
-          const age = (timestamp - pulse.born) / (pulse.strong ? 2350 : 1650);
+          const age = Math.max(0, (timestamp - pulse.born) / (pulse.contact ? 850 : pulse.strong ? 2350 : 1650));
           if (age >= 1) {
             pulses.splice(i, 1);
             continue;
           }
-          const radius = (.09 + (1 - (1 - age) ** 2) * (pulse.strong ? 1.36 : .87)) * unit;
+          const spread = pulse.contact ? .69 : pulse.strong ? 1.36 : .87;
+          const radius = (.09 + (1 - (1 - age) ** 2) * spread) * unit;
           ctx.beginPath();
           for (let step = 0; step <= 70; step++) {
             const a = step / 70 * TAU;
@@ -1405,10 +1433,22 @@
             const y = pulse.y * height + Math.sin(a) * r * .87;
             if (step === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
           }
-          ctx.strokeStyle = pigment(life, 16, 25, (1 - age) ** 2 * (pulse.strong ? .48 : .34));
-          ctx.lineWidth = .8;
+          ctx.strokeStyle = pigment(life, 16, 29, (1 - age) ** 2 * (pulse.contact ? .88 : pulse.strong ? .48 : .34));
+          ctx.lineWidth = pulse.contact ? 1.6 : .8;
           ctx.stroke();
         }
+      }
+
+      function drawFinger(timestamp) {
+        const strength = touchGesture?.tracking ? 1 : clamp((finger.fadeUntil - timestamp) / 650, 0, 1);
+        if (strength === 0) return;
+        const x = finger.x * width, y = finger.y * height;
+        halo(current, x, y, Math.max(26, unit * .48), strength * .27, 18);
+        ctx.beginPath();
+        ctx.arc(x, y, Math.max(7, unit * .072), 0, TAU);
+        ctx.strokeStyle = pigment(current, 15, 30, strength * .55);
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
       }
 
       function clock(now, timestamp) {
@@ -1443,7 +1483,7 @@
         if (outgoing) outgoing.vitals.breath = (outgoing.vitals.breath + dt * 1.04) % TAU;
         hueOfHour = mix(-20, 9, daylight.intensity) + (v.light - .5) * 8;
         lightOfHour = mix(1, 6, daylight.intensity) - v.stress * 10 + v.care * 6;
-        const response = motion.matches ? 1 : .082;
+        const response = motion.matches ? 1 : touchGesture?.tracking ? .34 : .082;
         pointer.x += (pointer.targetX - pointer.x) * response;
         pointer.y += (pointer.targetY - pointer.y) * response;
         const reveal = motion.matches ? 1 : clamp((timestamp - born) / 1100, 0, 1);
@@ -1455,6 +1495,7 @@
         if (outgoing && blend < 1) drawLife(outgoing, now, timestamp, 1 - blend, awake);
         else outgoing = null;
         drawLife(current, now, timestamp, blend, awake);
+        drawFinger(timestamp);
         if (!motion.matches) {
           drawWaves(current, timestamp);
           drawFragments(timestamp);
@@ -1573,9 +1614,16 @@
 
       function setPointer(event) {
         const [x, y] = coordinates(event);
-        pointer.targetX = (x - .5) * 2;
-        pointer.targetY = (y - .5) * 2;
         const px = x * width, py = y * height;
+        if (event.pointerType === "touch") {
+          pointer.targetX = clamp((px - centerX) / (unit * 1.26), -1, 1);
+          pointer.targetY = clamp((py - centerY) / (unit * 1.26), -1, 1);
+          finger.x = x;
+          finger.y = y;
+        } else {
+          pointer.targetX = (x - .5) * 2;
+          pointer.targetY = (y - .5) * 2;
+        }
         const now = performance.now();
         const dt = (now - pointer.lastMove) / 1000;
         pointer.speed = Number.isFinite(dt) && dt > .008 && dt < .4
@@ -1596,7 +1644,7 @@
         pointer.nearbySince = pointer.lastMove = -Infinity;
       }
 
-      function touchLife(event) {
+      function tapLife(event) {
         if (event.button > 0 || event.target.closest("button")) return;
         if (zen) {
           toggleZen();
@@ -1605,7 +1653,8 @@
         setPointer(event);
         const [x, y] = coordinates(event);
         const timestamp = performance.now();
-        wave(x, y, timestamp);
+        const contact = event.pointerType === "touch";
+        wave(x, y, timestamp, false, contact);
         if (Math.hypot((x * width - centerX) / 1.13, y * height - centerY) > unit * 1.40) return;
         impactAt = timestamp;
         const px = x * width, py = y * height;
@@ -1617,7 +1666,8 @@
         taps.push({ x: px, y: py, at: timestamp });
         const v = current.vitals;
         v.stress = Math.min(1, v.stress + (localHits > 1 ? .13 : .025));
-        v.energy = Math.max(.12, v.energy - (localHits > 1 ? .022 : .004));
+        if (contact && localHits === 1) v.energy = Math.min(1, v.energy + .022);
+        else v.energy = Math.max(.12, v.energy - (localHits > 1 ? .022 : .004));
         if (localHits >= 5) {
           const limb = nearbyLimb(px, py);
           if (limb) severLimb(limb, timestamp);
@@ -1628,36 +1678,58 @@
 
       function pointerStart(event) {
         if (event.pointerType !== "touch") {
-          touchLife(event);
+          if (!touchGesture) tapLife(event);
           return;
         }
-        if (!event.isPrimary || event.target.closest("button")) return;
-        touchGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, started: performance.now(), dragged: false };
-        if (!zen) setPointer(event);
+        if (!event.isPrimary) {
+          if (touchGesture) touchGesture.dragged = true;
+          return;
+        }
+        const tracking = artSpace.contains(event.target);
+        if (touchGesture || event.target.closest("button") || (!tracking && !zen)) return;
+        touchGesture = {
+          id: event.pointerId, x: event.clientX, y: event.clientY,
+          started: performance.now(), dragged: false, tracking
+        };
+        if (tracking) {
+          artSpace.setPointerCapture(event.pointerId);
+          setPointer(event);
+        }
       }
 
       function pointerMove(event) {
         if (event.pointerType === "touch") {
           if (!touchGesture || touchGesture.id !== event.pointerId) return;
           touchGesture.dragged ||= Math.hypot(event.clientX - touchGesture.x, event.clientY - touchGesture.y) > 12;
-          if (zen) return;
+          if (!touchGesture.tracking) return;
+        } else if (touchGesture) {
+          return;
         }
         setPointer(event);
       }
 
       function pointerEnd(event) {
         if (event.pointerType === "mouse") return;
-        if (touchGesture?.id === event.pointerId) {
+        if (event.pointerType === "touch") {
+          if (touchGesture?.id !== event.pointerId) return;
           const gesture = touchGesture;
           touchGesture = null;
+          const timestamp = performance.now();
+          if (gesture.tracking) finger.fadeUntil = timestamp + 650;
           const closeToStart = Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) <= 12;
-          if (!gesture.dragged && closeToStart && performance.now() - gesture.started < 420) touchLife(event);
+          if (!gesture.dragged && closeToStart && timestamp - gesture.started < 420) tapLife(event);
         }
         releasePointer();
       }
 
       function pointerCancel(event) {
-        if (touchGesture?.id === event.pointerId) touchGesture = null;
+        if (event.pointerType === "touch") {
+          if (touchGesture?.id !== event.pointerId) return;
+          touchGesture = null;
+          finger.fadeUntil = -Infinity;
+        } else if (touchGesture) {
+          return;
+        }
         releasePointer();
       }
 
@@ -1747,10 +1819,14 @@
       fullscreenButton.addEventListener("click", toggleFullscreen);
       document.addEventListener("fullscreenchange", () => fullscreenButton.setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
       stage.addEventListener("pointermove", pointerMove, { passive: true });
-      stage.addEventListener("pointerleave", pointerCancel);
+      stage.addEventListener("pointerleave", event => {
+        if (event.pointerType !== "touch") pointerCancel(event);
+      });
       stage.addEventListener("pointercancel", pointerCancel);
       stage.addEventListener("pointerup", pointerEnd);
       stage.addEventListener("pointerdown", pointerStart);
+      artSpace.addEventListener("lostpointercapture", pointerCancel);
+      artSpace.addEventListener("contextmenu", event => event.preventDefault());
       document.addEventListener("keydown", event => {
         if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
         if (event.key.toLowerCase() === "z" || (event.key === "Escape" && zen)) toggleZen();
@@ -1764,6 +1840,7 @@
           cancelAnimationFrame(frame);
           frame = 0;
           touchGesture = null;
+          finger.fadeUntil = -Infinity;
           releasePointer();
           saveVitals();
         } else if (!frame) {

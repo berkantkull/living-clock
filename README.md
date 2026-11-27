@@ -35,6 +35,7 @@ Sonra `http://localhost:8080` adresini açın.
 ## Kontroller
 
 - Yavaşça gezinin veya formun yakınında durun. Hızlı ve tekrarlı dokunuşların formu nasıl değiştirdiğini gözlemleyin.
+- Telefonda parmağınızı doğrudan formun üzerinde gezdirin veya bekletin. Sayfayı kaydırmak için hareketi sahnenin dışından başlatın.
 - Aynı aileye tekrar basarak yeni bir örnek oluşturun.
 - `Z` ile Zen Moduna girin. `Escape` ya da sahneye dokunarak çıkın.
 - Üstteki araçlar tam ekranı, Zen Modunu ve PNG kaydını açar. `TR / EN` arayüz dilini değiştirir.
