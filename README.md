@@ -48,3 +48,7 @@ GitHub Pages, siteyi `main` dalının kök dizininden yayınlar.
 Uygulamanın tamamı tek bir `index.html` dosyasındadır. Canvas çözünürlüğü en fazla `2x` piksel oranında çalışır. Sekme görünmediğinde animasyon durur. `prefers-reduced-motion` açıkken nefes animasyonu ve dalgalar devre dışı kalır.
 
 **Güneş ışığını eşle** etkinleştirilirse ışık, yaklaşık konum ile günün tarih ve saatine göre hesaplanır. Konum yalnızca bu oturum boyunca tarayıcı belleğinde tutulur. Konum eşlemesi kapalıyken ışık yerel saatten tahmin edilir. [NOAA güneş konumu denklemleri](https://www.gml.noaa.gov/grad/solcalc/solareqns.PDF)
+
+## Telif hakları
+
+© 2026 Berkant Kul. Tüm hakları saklıdır. [Hak bildirimi](LICENSE)
