@@ -3,965 +3,1188 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#070809">
-  <meta name="description" content="Zamanın akışını sürekli dönüşen organik bir biçimle görünür kılan deneysel dijital saat.">
-  <title>Living Clock — Zaman Canlıdır</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070809'/%3E%3Cpath d='M32 10C44 10 54 20 54 32S44 54 32 54 10 44 10 32 20 10 32 10Z' fill='none' stroke='%23e8edf2' stroke-width='2'/%3E%3Cpath d='M32 17v15l10 6' fill='none' stroke='%23e8edf2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0c0c0b">
+  <meta name="description" content="Zamanla evrilen yaşam biçimleri üzerine etkileşimli bir dijital enstalasyon.">
+  <title>Living Clock — Zaman canlıdır</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' rx='13' fill='%230c0c0b'/%3E%3Cpath d='M47 12C27 8 8 26 15 42 20 54 39 51 44 38 49 25 35 20 27 28 21 35 30 42 35 36' fill='none' stroke='%23dbb582' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #070809;
-      --ink: #f3f5f6;
-      --muted: rgba(238, 243, 246, .48);
-      --faint: rgba(238, 243, 246, .16);
-      --hairline: rgba(238, 243, 246, .12);
-      --focus: #dce9f2;
-      --ambient: rgba(137, 166, 185, .08);
-      --safe-top: max(24px, env(safe-area-inset-top));
-      --safe-right: max(24px, env(safe-area-inset-right));
-      --safe-bottom: max(22px, env(safe-area-inset-bottom));
-      --safe-left: max(24px, env(safe-area-inset-left));
-      font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-synthesis: none;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: geometricPrecision;
-    }
-
-    * { box-sizing: border-box; }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
+      --ink: #eee9df;
+      --muted: #a9a296;
+      --quiet: #8f887e;
+      --bg: #0c0c0b;
+      --line: #302c25;
+      --accent: #e2ba8b;
+      --sans: "Segoe UI", system-ui, sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-family: var(--sans);
       background: var(--bg);
       color: var(--ink);
+      font-synthesis: none;
     }
 
-    body {
-      position: relative;
-      isolation: isolate;
-      transition: background-color 1.6s ease;
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; min-width: 280px; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .installation {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      grid-template-rows: auto minmax(420px, 1fr) auto;
+      padding: 0 max(clamp(20px, 4vw, 64px), env(safe-area-inset-right))
+        env(safe-area-inset-bottom) max(clamp(20px, 4vw, 64px), env(safe-area-inset-left));
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: -20%;
-      z-index: -2;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 45%, var(--ambient), transparent 35%),
-        radial-gradient(circle at 8% 0%, rgba(255,255,255,.025), transparent 26%);
-      filter: blur(18px);
-      transition: background 1.6s ease;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-      pointer-events: none;
-      opacity: .22;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
-      mix-blend-mode: soft-light;
-    }
-
-    button { font: inherit; }
-
-    button:focus-visible {
-      outline: 1px solid var(--focus);
-      outline-offset: 4px;
-    }
-
-    .app {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-height: 420px;
-    }
-
-    .topbar,
-    .footer {
-      position: absolute;
-      z-index: 4;
-      left: 0;
-      right: 0;
+    .masthead {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      pointer-events: none;
-      transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1);
+      gap: 14px;
+      padding-block: max(20px, env(safe-area-inset-top)) 20px;
     }
 
-    .topbar {
-      top: 0;
-      padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
-    }
-
-    .footer {
-      bottom: 0;
-      align-items: flex-end;
-      padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
-    }
-
-    .brand,
-    .status,
-    .theme-panel,
-    .controls,
-    .manifesto { pointer-events: auto; }
-
-    .brand-title {
-      margin: 0;
-      font-size: .78rem;
-      font-weight: 530;
-      letter-spacing: .24em;
-      line-height: 1.2;
-    }
-
-    .eyebrow,
-    .manifesto,
-    .status,
-    .theme-label,
-    .theme-button,
-    .language-button,
-    .control-button {
-      text-transform: uppercase;
+    .wordmark { display: flex; align-items: center; gap: 12px; }
+    .wordmark svg { width: 32px; height: 32px; color: var(--accent); }
+    .wordmark h1 { margin: 0; font: 400 25px/1 var(--serif); letter-spacing: -.045em; }
+    .wordmark small, .caption, .stage-label {
+      color: var(--muted);
+      font-size: .75rem;
       letter-spacing: .18em;
+      text-transform: uppercase;
     }
+    .wordmark small { display: block; margin-top: 6px; font-size: .65rem; }
 
-    .eyebrow {
-      margin-top: .55rem;
-      color: var(--muted);
-      font-size: .67rem;
-      line-height: 1;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      pointer-events: auto;
-    }
-
-    .language-switch {
-      display: flex;
-      align-items: center;
-      gap: .15rem;
-      padding: .18rem;
-      border: 1px solid var(--hairline);
-      border-radius: 999px;
-      background: rgba(7,8,9,.28);
-      backdrop-filter: blur(16px);
-    }
-
-    .language-button {
-      min-width: 2.35rem;
-      min-height: 2rem;
-      padding: 0 .55rem;
-      border: 0;
-      border-radius: 999px;
-      color: var(--muted);
+    .toolbar, .languages { display: flex; align-items: center; }
+    .toolbar { gap: 7px; }
+    .languages { border: 1px solid var(--line); border-radius: 3px; margin-right: 5px; }
+    .languages button, .tool {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      min-height: 42px;
+      border: 1px solid transparent;
       background: transparent;
-      cursor: pointer;
-      font-size: .62rem;
-      transition: color .25s ease, background .25s ease;
-    }
-
-    .language-button[aria-pressed="true"] {
-      color: var(--ink);
-      background: rgba(255,255,255,.08);
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: .58rem;
-      min-height: 2.35rem;
       color: var(--muted);
-      font-size: .64rem;
+      transition: color 160ms, background 160ms, border-color 160ms;
     }
-
-    .status-dot {
-      position: relative;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #e9f1f5;
-      box-shadow: 0 0 14px rgba(232,241,246,.7);
-    }
-
-    .status-dot::after {
-      content: "";
-      position: absolute;
-      inset: -5px;
-      border: 1px solid rgba(232,241,246,.3);
-      border-radius: inherit;
-      animation: signal 2.6s ease-out infinite;
-    }
-
-    @keyframes signal {
-      0% { transform: scale(.4); opacity: 0; }
-      20% { opacity: .8; }
-      100% { transform: scale(1.75); opacity: 0; }
-    }
+    .languages button { font-size: .75rem; letter-spacing: .08em; }
+    .tool { border-color: var(--line); border-radius: 3px; }
+    .toolbar button:hover, .toolbar button[aria-pressed=true] { color: var(--ink); background: #24211b; }
+    .tool svg, .mutation svg { width: 19px; height: 19px; }
 
     .stage {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      cursor: crosshair;
-      touch-action: none;
-    }
-
-    #clockCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .time-lockup {
       position: relative;
-      z-index: 2;
+      min-height: 0;
+      isolation: isolate;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #10100e;
+    }
+    .stage::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      box-shadow: inset 0 0 80px #08080770;
+      pointer-events: none;
+    }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .stage-label {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      text-align: center;
+      gap: 10px;
+      position: absolute;
+      z-index: 2;
+      top: clamp(18px, 3vw, 38px);
+      left: clamp(20px, 4vw, 56px);
+      pointer-events: none;
+    }
+    .stage-label::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 13px var(--accent);
+    }
+    .clock {
+      position: absolute;
+      z-index: 2;
+      left: clamp(20px, 4vw, 56px);
+      top: 45%;
+      transform: translateY(-50%);
       pointer-events: none;
       user-select: none;
-      transform: translateY(-.5vh);
-      text-shadow: 0 2px 24px rgba(0,0,0,.4);
     }
-
-    .time {
-      font-variant-numeric: tabular-nums lining-nums;
-      font-size: clamp(3.2rem, 10.8vw, 9.25rem);
-      font-weight: 200;
-      line-height: .86;
-      letter-spacing: -.055em;
+    .clock time {
+      display: block;
+      color: #f4eee4;
+      font: 400 clamp(3.5rem, 8vw, 9rem)/.95 var(--serif);
+      font-variant-numeric: lining-nums tabular-nums;
+      letter-spacing: -.075em;
       white-space: nowrap;
+      text-shadow: 0 3px 30px #080807;
     }
-
     .date {
-      margin-top: clamp(1.25rem, 3vh, 2.25rem);
-      color: rgba(245,247,248,.62);
-      font-size: clamp(.68rem, 1vw, .82rem);
-      font-weight: 450;
-      line-height: 1.35;
+      margin: 16px 0 0 3px;
+      color: #c5b9a9;
+      font-size: .8rem;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      letter-spacing: .22em;
     }
-
-    .manifesto {
-      padding-bottom: .75rem;
-      color: var(--muted);
-      font-size: .64rem;
-      white-space: nowrap;
-    }
-
-    .theme-panel {
+    .specimen {
       position: absolute;
-      left: 50%;
-      bottom: var(--safe-bottom);
-      z-index: 5;
+      z-index: 2;
+      bottom: clamp(18px, 3vw, 34px);
+      right: clamp(20px, 4vw, 50px);
+      max-width: min(48%, 260px);
+      text-align: right;
+      pointer-events: none;
+    }
+    .specimen .caption { color: var(--accent); letter-spacing: .13em; }
+    .specimen-name {
+      display: block;
+      margin-top: 4px;
+      font: italic 400 clamp(1.45rem, 2.9vw, 3rem)/1.1 var(--serif);
+      text-shadow: 0 3px 20px #080807;
+    }
+    .hint {
+      position: absolute;
+      z-index: 2;
+      bottom: clamp(18px, 3vw, 34px);
+      left: clamp(20px, 4vw, 56px);
+      max-width: 48%;
+      margin: 0;
+      color: var(--muted);
+      font-size: .84rem;
+      pointer-events: none;
+    }
+
+    .catalog {
+      display: grid;
+      grid-template-columns: minmax(95px, .75fr) 5fr auto;
+      gap: 16px;
+      align-items: center;
+      padding-block: 18px 20px;
+    }
+    .catalog h2 { margin: 0; font: 400 1.45rem/1 var(--serif); }
+    .forms {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 5px;
+    }
+    .form {
+      position: relative;
+      min-height: 74px;
+      padding: 8px 4px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: .78rem;
-      transform: translateX(-50%);
-      transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1);
-    }
-
-    .theme-label {
-      color: rgba(245,247,248,.36);
-      font-size: .58rem;
-    }
-
-    .theme-switcher {
-      display: flex;
-      align-items: center;
-      gap: .2rem;
-      padding: .3rem;
-      border: 1px solid var(--hairline);
-      border-radius: 999px;
-      background: rgba(7,8,9,.34);
-      box-shadow: 0 14px 44px rgba(0,0,0,.16);
-      backdrop-filter: blur(18px);
-    }
-
-    .theme-button {
-      position: relative;
-      min-height: 2.2rem;
-      padding: 0 .78rem;
-      border: 0;
-      border-radius: 999px;
-      color: var(--muted);
-      background: transparent;
-      cursor: pointer;
-      font-size: .58rem;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: #12110f;
+      color: #c0b6a8;
       white-space: nowrap;
-      transition: color .3s ease, background .3s ease;
+      font-size: .84rem;
+      transition: background 160ms, border-color 160ms, color 160ms;
     }
-
-    .theme-button:hover { color: var(--ink); }
-
-    .theme-button[aria-pressed="true"] {
-      color: var(--ink);
-      background: rgba(255,255,255,.085);
-    }
-
-    .controls {
+    .form:hover { border-color: #8c7760; color: var(--ink); }
+    .form[aria-pressed=true] { color: var(--accent); border-color: #735b43; background: #211b15; }
+    .form svg { width: 24px; height: 24px; }
+    .mutation {
       display: flex;
       align-items: center;
-      gap: .45rem;
+      justify-content: center;
+      min-height: 56px;
+      gap: 9px;
+      padding: 0 14px;
+      border: 1px solid #e0be96;
+      border-radius: 3px;
+      background: #e0be96;
+      color: #1a140f;
+      white-space: nowrap;
+      font-size: .85rem;
+      transition: background 160ms, border-color 160ms;
     }
-
-    .control-button {
-      position: relative;
-      display: grid;
-      width: 2.75rem;
-      height: 2.75rem;
-      place-items: center;
-      border: 1px solid var(--hairline);
-      border-radius: 50%;
-      color: rgba(244,247,248,.72);
-      background: rgba(7,8,9,.28);
-      cursor: pointer;
-      backdrop-filter: blur(16px);
-      transition: color .25s ease, border-color .25s ease, background .25s ease, transform .25s ease;
-    }
-
-    .control-button:hover {
-      color: #fff;
-      border-color: rgba(255,255,255,.3);
-      background: rgba(255,255,255,.06);
-      transform: translateY(-2px);
-    }
-
-    .control-button[aria-pressed="true"] {
-      color: #fff;
-      background: rgba(255,255,255,.1);
-    }
-
-    .control-button svg {
-      width: 17px;
-      height: 17px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.4;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      top: calc(var(--safe-top) + 3.8rem);
-      z-index: 20;
-      max-width: calc(100vw - 2rem);
-      padding: .72rem 1rem;
-      border: 1px solid var(--hairline);
-      border-radius: 999px;
-      color: rgba(255,255,255,.84);
-      background: rgba(7,8,9,.78);
-      font-size: .72rem;
-      letter-spacing: .04em;
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, -8px);
-      backdrop-filter: blur(18px);
-      transition: opacity .3s ease, transform .3s ease;
-    }
-
-    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
-
-    body.zen .topbar,
-    body.zen .footer,
-    body.zen .theme-panel {
-      opacity: 0;
+    .mutation:hover { background: #f1d3b1; border-color: #f1d3b1; }
+    svg { fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+    .notice {
+      position: absolute;
+      z-index: 3;
+      top: 18px;
+      right: 18px;
+      max-width: min(260px, 66%);
+      margin: 0;
+      padding: 9px 12px;
+      border: 1px solid #564b3b;
+      border-radius: 3px;
+      background: #18150fee;
+      color: var(--ink);
+      font-size: .8rem;
       pointer-events: none;
     }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
 
-    body.zen .topbar { transform: translateY(-18px); }
-    body.zen .footer { transform: translateY(18px); }
-    body.zen .theme-panel { transform: translate(-50%, 18px); }
-    body.zen .stage { cursor: none; }
+    body.zen .installation { padding: 0; display: block; }
+    body.zen .stage { height: 100vh; height: 100svh; border: 0; }
+    body.zen .masthead, body.zen .catalog, body.zen .hint,
+    body.zen .specimen, body.zen .stage-label { display: none; }
 
-    @media (max-width: 820px) {
-      :root {
-        --safe-top: max(18px, env(safe-area-inset-top));
-        --safe-right: max(16px, env(safe-area-inset-right));
-        --safe-bottom: max(16px, env(safe-area-inset-bottom));
-        --safe-left: max(16px, env(safe-area-inset-left));
+    @media (max-width: 940px) {
+      .installation { grid-template-rows: auto minmax(420px, 1fr) auto; }
+      .catalog { grid-template-columns: 1fr auto; gap: 10px; }
+      .forms { grid-row: 2; grid-column: 1 / -1; }
+      .mutation { min-height: 42px; }
+    }
+    @media (max-width: 620px) {
+      .installation {
+        padding-inline: max(14px, env(safe-area-inset-left), env(safe-area-inset-right));
+        grid-template-rows: auto minmax(390px, 1fr) auto;
       }
-
-      .top-actions { gap: .65rem; }
-      .status span:last-child { display: none; }
-      .theme-panel { bottom: calc(var(--safe-bottom) + 3.6rem); }
-      .theme-label { display: none; }
-      .theme-switcher { max-width: calc(100vw - 2rem); overflow-x: auto; scrollbar-width: none; }
-      .theme-switcher::-webkit-scrollbar { display: none; }
-      .theme-button { padding: 0 .62rem; }
-      .manifesto { max-width: 7rem; white-space: normal; line-height: 1.5; }
-      .controls { gap: .3rem; }
-      .control-button { width: 2.55rem; height: 2.55rem; }
-      .date { max-width: 82vw; }
+      .masthead { padding-block: max(12px, env(safe-area-inset-top)) 14px; gap: 6px; }
+      .wordmark { gap: 6px; }
+      .wordmark h1 { font-size: 1.25rem; }
+      .wordmark svg { width: 23px; height: 23px; }
+      .wordmark small { display: none; }
+      .toolbar { gap: 3px; }
+      .languages { margin-right: 2px; }
+      .languages button, .tool { width: 34px; min-height: 42px; }
+      .tool svg { width: 17px; }
+      .stage-label { top: 15px; font-size: .67rem; }
+      .clock { top: 56px; transform: none; }
+      .clock time { font-size: clamp(3.6rem, 15vw, 6rem); }
+      .date { margin: 7px 0 0 2px; font-size: .69rem; letter-spacing: .095em; }
+      .hint { font-size: .74rem; }
+      .specimen .caption { font-size: .68rem; }
+      .catalog { padding-block: 12px; }
+      .catalog h2 { font-size: 1.25rem; }
+      .forms { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .form { min-height: 48px; flex-direction: row; gap: 6px; padding: 5px 3px; }
+      .form svg { width: 19px; height: 19px; }
+      body.zen .clock { top: max(34px, env(safe-area-inset-top)); }
     }
-
-    @media (max-width: 430px) {
-      .brand-title { font-size: .69rem; }
-      .eyebrow { font-size: .58rem; }
-      .language-button { min-width: 2.05rem; min-height: 1.85rem; }
-      .time { font-size: clamp(2.9rem, 16.5vw, 4.5rem); }
-      .date { font-size: .62rem; letter-spacing: .16em; }
-      .manifesto { font-size: .56rem; max-width: 5.5rem; }
-      .theme-button { min-height: 2rem; padding: 0 .52rem; font-size: .53rem; }
+    @media (max-width: 355px) {
+      .wordmark svg { display: none; }
+      .languages button, .tool { width: 31px; }
+      .form { font-size: .75rem; }
     }
-
-    @media (max-height: 590px) and (orientation: landscape) {
-      .theme-panel { bottom: var(--safe-bottom); }
-      .theme-label { display: none; }
-      .time { font-size: clamp(3rem, 12vw, 6.5rem); }
-      .date { margin-top: .9rem; }
-      .manifesto { display: none; }
-    }
-
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .15s !important;
-      }
+      *, *::before, *::after { transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
-  <main class="app" aria-label="Living Clock">
-    <header class="topbar">
-      <div class="brand" aria-label="Living Clock, Deney 001">
-        <h1 class="brand-title">LIVING CLOCK</h1>
-        <div class="eyebrow" data-i18n="experiment">DENEY 001</div>
+  <main class="installation">
+    <header class="masthead">
+      <div class="wordmark">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M25 6C15 3 5 12 7 21c2 8 13 8 16 1 3-6-4-11-9-7-3 2-2 7 2 7 2 0 3-1 3-3"/></svg>
+        <div><h1>Living Clock</h1><small data-text="subtitle">Dijital enstalasyon</small></div>
       </div>
-
-      <div class="top-actions">
-        <div class="language-switch" role="group" aria-label="Dil / Language">
-          <button class="language-button" type="button" data-lang="tr" aria-pressed="true">TR</button>
-          <button class="language-button" type="button" data-lang="en" aria-pressed="false">EN</button>
+      <div class="toolbar">
+        <div class="languages" role="group" aria-label="Dil / Language">
+          <button type="button" data-lang="tr" lang="tr" aria-label="Türkçe" aria-pressed="true">TR</button>
+          <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
         </div>
-        <div class="status" aria-live="polite">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span data-i18n="live">CANLI</span>
-        </div>
+        <button type="button" class="tool" id="fullscreen" aria-pressed="false" aria-label="Tam ekran" data-label="fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg>
+        </button>
+        <button type="button" class="tool" id="zen" aria-pressed="false" aria-label="Zen modu" data-label="zen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12c2.5-3.8 5.7-5.7 9.5-5.7s7 1.9 9.5 5.7c-2.5 3.8-5.7 5.7-9.5 5.7s-7-1.9-9.5-5.7Z"/><circle cx="12" cy="12" r="2.2"/></svg>
+        </button>
+        <button type="button" class="tool" id="save" aria-label="PNG olarak kaydet" data-label="save">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4l1.5-2h5L16 8h4v11H4Z"/><circle cx="12" cy="13.3" r="3"/></svg>
+        </button>
       </div>
     </header>
-
-    <section class="stage" id="stage" aria-label="Zamanla dönüşen etkileşimli organik form" data-i18n-aria="stage">
-      <canvas id="clockCanvas" aria-hidden="true"></canvas>
-      <div class="time-lockup">
-        <time class="time" id="time" datetime="">00:00:00</time>
-        <div class="date" id="date">—</div>
+    <section class="stage" id="stage" aria-label="Canlı saat" data-label="stage" tabindex="-1">
+      <canvas id="art" aria-hidden="true"></canvas>
+      <p class="notice" id="notice" aria-hidden="true" hidden></p>
+      <span class="stage-label" data-text="local">Yerel zaman</span>
+      <div class="clock">
+        <time id="time"></time>
+        <p class="date" id="date"></p>
+      </div>
+      <p class="hint" data-text="hint">Hareket et ya da dokun.</p>
+      <div class="specimen">
+        <span class="caption" id="signature"></span>
+        <span class="specimen-name" id="specimen-name"></span>
       </div>
     </section>
-
-    <div class="theme-panel">
-      <div class="theme-label" data-i18n="atmosphere">ATMOSFER</div>
-      <div class="theme-switcher" role="group" aria-label="Görsel tema" data-i18n-aria="themes">
-        <button class="theme-button" type="button" data-theme="auto" aria-pressed="true" data-i18n="auto">OTOMATİK</button>
-        <button class="theme-button" type="button" data-theme="liquid" aria-pressed="false" data-i18n="liquid">SIVI</button>
-        <button class="theme-button" type="button" data-theme="solar" aria-pressed="false" data-i18n="solar">GÜNEŞ</button>
-        <button class="theme-button" type="button" data-theme="nebula" aria-pressed="false" data-i18n="nebula">NEBULA</button>
-        <button class="theme-button" type="button" data-theme="mono" aria-pressed="false" data-i18n="mono">MONOKROM</button>
+    <section class="catalog" aria-labelledby="catalog-title">
+      <h2 id="catalog-title" data-text="forms">Yaşam biçimleri</h2>
+      <div class="forms" role="group" aria-labelledby="catalog-title">
+        <button type="button" class="form" data-form="veil" aria-pressed="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11c2-9 16-9 18 0-5 4-13 4-18 0Zm4 2c-2 3 3 5 0 8m5-7c-2 3 3 4 0 7m5-8c-2 3 2 4 0 7"/></svg>
+          <span data-text="veil">Peçe</span>
+        </button>
+        <button type="button" class="form" data-form="root" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-.2-5 2-8 1-12-.5-2-2-4-1-8m1 11c-3-2-6-2-8-7m8 4c1-3 5-3 6-7M9 11c-2 0-4 1-6-1m10 7c3-3 5-1 8-5"/></svg>
+          <span data-text="root">Kök</span>
+        </button>
+        <button type="button" class="form" data-form="spore" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 10 7 7m7 3 3-4m-5 9v4m4-6 4 1"/><circle cx="12.8" cy="12.2" r="3.3"/><circle cx="5.4" cy="5.4" r="2.2"/><circle cx="18.3" cy="4.7" r="1.8"/><circle cx="12" cy="20" r="1.7"/><circle cx="21" cy="14" r="1.3"/></svg>
+          <span data-text="spore">Spor</span>
+        </button>
+        <button type="button" class="form" data-form="fold" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 19C5 2 21 2 20 8S4 9 6 16c1 4 9 4 16-2M4 21c4-6 12-7 18-7"/></svg>
+          <span data-text="fold">Kıvrım</span>
+        </button>
+        <button type="button" class="form" data-form="colony" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 4.4 2.6v5L12 13l-4.4-2.4v-5L12 3Zm-4.4 7.6 4.4 2.6v5l-4.4 2.4-4.4-2.4v-5l4.4-2.6Zm8.8 0 4.4 2.6v5l-4.4 2.4-4.4-2.4v-5l4.4-2.6Z"/></svg>
+          <span data-text="colony">Koloni</span>
+        </button>
+        <button type="button" class="form" data-form="filament" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8c5 0 8 9 18 7M3 12c6-6 12 6 18 0M3 16c6-1 11-11 18-8M4 20c5-5 7-13 16-16"/></svg>
+          <span data-text="filament">Lif</span>
+        </button>
       </div>
-    </div>
-
-    <footer class="footer">
-      <div class="manifesto" data-i18n="manifesto">ZAMAN CANLIDIR.</div>
-      <div class="controls" aria-label="Görüntü kontrolleri" data-i18n-aria="controls">
-        <button class="control-button" id="fullscreenButton" type="button" aria-label="Tam ekran" data-i18n-aria="fullscreen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
-        </button>
-        <button class="control-button" id="zenButton" type="button" aria-label="Zen modu" data-i18n-aria="zen" aria-pressed="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12c2.1-3.6 4.8-5.4 8-5.4s5.9 1.8 8 5.4c-2.1 3.6-4.8 5.4-8 5.4S6.1 15.6 4 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>
-        </button>
-        <button class="control-button" id="screenshotButton" type="button" aria-label="PNG olarak kaydet" data-i18n-aria="screenshot">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.4-2h7.2l1.4 2h3v10H4Z"/><circle cx="12" cy="13.2" r="3.1"/></svg>
-        </button>
-      </div>
-    </footer>
+      <button type="button" class="mutation" id="mutation">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c0 6 3 9 9 9-6 0-9 3-9 9 0-6-3-9-9-9 6 0 9-3 9-9Z"/></svg>
+        <span data-text="mutation">Yeni yaşam</span>
+      </button>
+    </section>
+    <p class="sr-only" id="announcement" role="status"></p>
   </main>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
   <script>
     (() => {
-      'use strict';
+      "use strict";
 
-      const canvas = document.getElementById('clockCanvas');
-      const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
-      const stage = document.getElementById('stage');
-      const timeElement = document.getElementById('time');
-      const dateElement = document.getElementById('date');
-      const toastElement = document.getElementById('toast');
-      const themeButtons = [...document.querySelectorAll('[data-theme]')];
-      const languageButtons = [...document.querySelectorAll('[data-lang]')];
-      const fullscreenButton = document.getElementById('fullscreenButton');
-      const zenButton = document.getElementById('zenButton');
-      const screenshotButton = document.getElementById('screenshotButton');
-      const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-      const TAU = Math.PI * 2;
-
-      const copy = {
+      const stage = document.getElementById("stage");
+      const canvas = document.getElementById("art");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      const timeNode = document.getElementById("time");
+      const dateNode = document.getElementById("date");
+      const nameNode = document.getElementById("specimen-name");
+      const signatureNode = document.getElementById("signature");
+      const announcement = document.getElementById("announcement");
+      const notice = document.getElementById("notice");
+      const zenButton = document.getElementById("zen");
+      const fullscreenButton = document.getElementById("fullscreen");
+      const formButtons = document.querySelectorAll("[data-form]");
+      const languageButtons = document.querySelectorAll("[data-lang]");
+      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const compact = window.matchMedia("(max-width: 620px)");
+      const TAU = 2 * Math.PI;
+      const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+      const families = ["veil", "root", "spore", "fold", "colony", "filament"];
+      const colorways = {
+        veil: [[26, 67, 65], [14, 65, 64], [43, 54, 64], [336, 44, 65]],
+        root: [[94, 35, 62], [58, 52, 63], [28, 59, 64], [166, 38, 59]],
+        spore: [[188, 50, 62], [156, 46, 61], [260, 47, 66], [201, 49, 64]],
+        fold: [[347, 48, 66], [323, 38, 64], [21, 52, 65], [268, 42, 66]],
+        colony: [[149, 38, 64], [114, 40, 61], [191, 50, 58], [46, 53, 66]],
+        filament: [[232, 52, 69], [267, 49, 68], [191, 49, 62], [33, 67, 65]]
+      };
+      const labels = {
         tr: {
-          experiment: 'DENEY 001', live: 'CANLI', atmosphere: 'ATMOSFER',
-          auto: 'OTOMATİK', liquid: 'SIVI', solar: 'GÜNEŞ', nebula: 'NEBULA', mono: 'MONOKROM',
-          manifesto: 'ZAMAN CANLIDIR.', stage: 'Zamanla dönüşen etkileşimli organik form',
-          themes: 'Görsel tema', controls: 'Görüntü kontrolleri', fullscreen: 'Tam ekran',
-          zen: 'Zen modu', screenshot: 'PNG olarak kaydet', screenshotSaved: 'Kompozisyon PNG olarak kaydedildi.',
-          screenshotError: 'Görüntü kaydedilemedi.', fullscreenError: 'Tam ekran bu tarayıcıda desteklenmiyor.',
-          zenExit: 'Zen modundan çıkmak için dokunun veya Escape tuşuna basın.'
+          title: "Living Clock — Zaman canlıdır",
+          description: "Zamanla evrilen yaşam biçimleri üzerine etkileşimli bir dijital enstalasyon.",
+          subtitle: "Dijital enstalasyon", local: "Yerel zaman", stage: "Canlı saat ve etkileşimli yaşam formu",
+          forms: "Yaşam biçimleri", hint: "Hareket et ya da dokun.", mutation: "Yeni yaşam", hybrid: "Melez",
+          veil: "Peçe", root: "Kök", spore: "Spor", fold: "Kıvrım", colony: "Koloni", filament: "Lif",
+          fullscreen: "Tam ekran", zen: "Zen modu", save: "PNG olarak kaydet",
+          fullscreenError: "Bu tarayıcıda tam ekran açılamadı.",
+          saveError: "PNG oluşturulamadı.", saveDone: "Kompozisyon PNG olarak indiriliyor."
         },
         en: {
-          experiment: 'EXPERIMENT 001', live: 'LIVE', atmosphere: 'ATMOSPHERE',
-          auto: 'AUTO', liquid: 'LIQUID', solar: 'SOLAR', nebula: 'NEBULA', mono: 'MONOCHROME',
-          manifesto: 'TIME IS ALIVE.', stage: 'Interactive organic form evolving with time',
-          themes: 'Visual theme', controls: 'Display controls', fullscreen: 'Fullscreen',
-          zen: 'Zen mode', screenshot: 'Save as PNG', screenshotSaved: 'Composition saved as PNG.',
-          screenshotError: 'The image could not be saved.', fullscreenError: 'Fullscreen is not supported by this browser.',
-          zenExit: 'Tap or press Escape to leave Zen mode.'
+          title: "Living Clock — Time is alive",
+          description: "An interactive digital installation about life forms that evolve with time.",
+          subtitle: "Digital installation", local: "Local time", stage: "Live clock and interactive life form",
+          forms: "Life forms", hint: "Move or touch to interact.", mutation: "New life", hybrid: "Hybrid",
+          veil: "Veil", root: "Root", spore: "Spore", fold: "Fold", colony: "Colony", filament: "Filament",
+          fullscreen: "Fullscreen", zen: "Zen mode", save: "Save as PNG",
+          fullscreenError: "Fullscreen could not open in this browser.",
+          saveError: "The PNG could not be created.", saveDone: "The composition is downloading as a PNG."
         }
       };
-
-      const themes = {
-        liquid: {
-          colors: [[239,245,248],[150,169,180],[255,255,255]], glow: [163,194,210],
-          bg: '#070809', ambient: 'rgba(145, 177, 194, .10)', layers: 22, amp: .105, detail: 7,
-          twist: 2.4, speed: .72, drift: .24, line: .78, fill: .030
-        },
-        solar: {
-          colors: [[255,202,123],[240,108,53],[156,39,28]], glow: [255,108,45],
-          bg: '#090705', ambient: 'rgba(255, 102, 37, .12)', layers: 18, amp: .145, detail: 5,
-          twist: 3.2, speed: .92, drift: .34, line: .72, fill: .040
-        },
-        nebula: {
-          colors: [[189,161,255],[92,139,255],[89,223,231]], glow: [111,98,255],
-          bg: '#06070b', ambient: 'rgba(103, 83, 255, .13)', layers: 26, amp: .125, detail: 8,
-          twist: 4.1, speed: .58, drift: .42, line: .62, fill: .025
-        },
-        mono: {
-          colors: [[255,255,255],[166,170,174],[78,82,86]], glow: [210,218,223],
-          bg: '#050606', ambient: 'rgba(210, 218, 223, .055)', layers: 34, amp: .072, detail: 11,
-          twist: 1.6, speed: .38, drift: .15, line: .48, fill: .008
-        }
+      const dateFormat = {
+        tr: new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+        en: new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
       };
 
-      const state = {
-        width: 0, height: 0, dpr: 1, cx: 0, cy: 0, radius: 0,
-        pointerX: .5, pointerY: .5, smoothX: .5, smoothY: .5, pointerActive: 0,
-        theme: localStorage.getItem('living-clock-theme') || 'auto',
-        language: localStorage.getItem('living-clock-language') || 'tr',
-        effectiveTheme: 'liquid', previousEffectiveTheme: 'liquid',
-        palette: new Float32Array(12), targetPalette: new Float32Array(12),
-        geometry: new Float32Array(8), targetGeometry: new Float32Array(8),
-        ripples: [], midnightPulse: 0, lastMinute: -1, lastHour: -1,
-        lastSecond: -1, running: true, zen: false, toastTimer: 0, frame: 0
-      };
-
-      if (!themes[state.theme] && state.theme !== 'auto') state.theme = 'auto';
-      if (!copy[state.language]) state.language = 'tr';
-
-      function autoTheme(hour) {
-        if (hour >= 5 && hour < 10) return 'solar';
-        if (hour >= 10 && hour < 17) return 'liquid';
-        if (hour >= 17 && hour < 22) return 'nebula';
-        return 'mono';
+      function restore(key, fallback) {
+        try { return localStorage.getItem("living-clock-" + key) || fallback; }
+        catch { return fallback; }
       }
 
-      function setTargets(name, immediate = false) {
-        const theme = themes[name];
-        let p = 0;
-        for (let i = 0; i < 3; i++) {
-          state.targetPalette[p++] = theme.colors[i][0];
-          state.targetPalette[p++] = theme.colors[i][1];
-          state.targetPalette[p++] = theme.colors[i][2];
+      function persist(key, value) {
+        try { localStorage.setItem("living-clock-" + key, value); }
+        catch { /* The installation works when storage is unavailable. */ }
+      }
+
+      let language = restore("language", "tr") === "en" ? "en" : "tr";
+      let width = 1, height = 1, scale = 1;
+      let centerX = 0, centerY = 0, unit = 1;
+      let frame = 0, lastPaint = 0, lastSecond = -1, lastMinute = null;
+      let lastDate = "", midnight = -Infinity, born = -Infinity;
+      let current, outgoing;
+      let zen = false, focusBeforeZen, noticeTimer = 0;
+      let hueOfHour = 0, lightOfHour = 0;
+      const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      const pulses = [];
+
+      const mix = (a, b, q) => a + (b - a) * q;
+      const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
+      function randFrom(seed) {
+        return () => {
+          seed = (seed + 0x6D2B79F5) >>> 0;
+          let n = Math.imul(seed ^ (seed >>> 15), seed | 1);
+          n ^= n + Math.imul(n ^ (n >>> 7), n | 61);
+          return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function makeLife(family, seed, first = false) {
+        const random = randFrom(seed);
+        const secondary = family === "hybrid" ? families[Math.floor(random() * families.length)] : null;
+        const pool = families.filter(value => value !== secondary);
+        const anatomy = secondary ? pool[Math.floor(random() * pool.length)] : family;
+        const variants = colorways[anatomy];
+        const [hue, saturation, lightness] = first ? variants[0] : variants[Math.floor(random() * variants.length)];
+        const traits = {
+          seed, family, anatomy, secondary,
+          hue: hue + (first ? 0 : (random() - .5) * 22),
+          saturation, lightness,
+          phase: random() * TAU,
+          tilt: (random() - .5) * .33,
+          width: .87 + random() * .24,
+          span: .82 + random() * .25,
+          frequency: 2.5 + random() * 2.1,
+          amplitude: .7 + random() * .42,
+          speed: .77 + random() * .48,
+          rays: Array.from({ length: 95 }, random),
+          dust: Array.from({ length: 88 }, () => ({
+            x: (random() - .5) * 3.8,
+            y: (random() - .5) * 3.15,
+            radius: .001 + random() ** 2 * .006,
+            phase: random() * TAU
+          }))
+        };
+        if (anatomy === "veil" || secondary === "veil") {
+          traits.flecks = Array.from({ length: 132 }, () => ({
+            angle: random() * TAU, depth: random(), size: .001 + random() ** 2 * .005
+          }));
         }
-        state.targetPalette[p++] = theme.glow[0];
-        state.targetPalette[p++] = theme.glow[1];
-        state.targetPalette[p++] = theme.glow[2];
-        state.targetGeometry.set([theme.layers, theme.amp, theme.detail, theme.twist, theme.speed, theme.drift, theme.line, theme.fill]);
-        document.documentElement.style.setProperty('--ambient', theme.ambient);
-        document.documentElement.style.setProperty('--bg', theme.bg);
-        document.querySelector('meta[name="theme-color"]').setAttribute('content', theme.bg);
-        if (immediate) {
-          state.palette.set(state.targetPalette);
-          state.geometry.set(state.targetGeometry);
+        if (anatomy === "root" || secondary === "root") traits.branches = makeBranches(random);
+        if (anatomy === "spore" || secondary === "spore") traits.spores = makeSpores(random);
+        if (anatomy === "colony" || secondary === "colony") traits.cells = makeCells(random);
+        return traits;
+      }
+
+      function makeBranches(random) {
+        const branches = [];
+        const main = 6 + Math.floor(random() * 4);
+        function branch(x, y, heading, length, depth) {
+          const bend = (random() - .5) * .76;
+          const nx = x + Math.cos(heading) * length;
+          const ny = y + Math.sin(heading) * length;
+          branches.push({ x, y, nx, ny, heading, bend, depth, length, phase: random() * TAU });
+          if (depth === 3) return;
+          branch(nx, ny, heading + bend, length * (.53 + random() * .21), depth + 1);
+          if (depth < 2 || random() > .23) {
+            const side = random() > .48 ? 1 : -1;
+            branch(nx, ny, heading + side * (.48 + random() * .91), length * (.41 + random() * .28), depth + 1);
+          }
         }
-      }
-
-      function updateEffectiveTheme(now, immediate = false) {
-        const effective = state.theme === 'auto' ? autoTheme(now.getHours()) : state.theme;
-        if (effective !== state.effectiveTheme || immediate) {
-          state.previousEffectiveTheme = state.effectiveTheme;
-          state.effectiveTheme = effective;
-          setTargets(effective, immediate);
+        for (let i = 0; i < main; i++) {
+          const heading = i / main * TAU + (random() - .5) * .54;
+          branch(Math.cos(heading) * .04, Math.sin(heading) * .04, heading, .41 + random() * .25, 0);
         }
+        return branches;
       }
 
-      function setTheme(name) {
-        state.theme = name;
-        localStorage.setItem('living-clock-theme', name);
-        themeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.theme === name)));
-        updateEffectiveTheme(new Date());
+      function makeSpores(random) {
+        const spores = [];
+        const total = 19 + Math.floor(random() * 18);
+        for (let i = 0; i < total; i++) {
+          const angle = i * GOLDEN_ANGLE + (random() - .5) * .53;
+          const orbit = .08 + Math.sqrt(i / total) * (.64 + random() * .27);
+          spores.push({
+            angle, orbit, phase: random() * TAU,
+            size: .045 + (.09 + (1 - i / total) * .13) * random(),
+            parent: i ? Math.max(0, i - (i < 6 ? i : i % 2 ? 5 : 8)) : 0,
+            x: 0, y: 0
+          });
+        }
+        return spores;
       }
 
-      function setLanguage(language) {
-        state.language = language;
-        localStorage.setItem('living-clock-language', language);
-        document.documentElement.lang = language;
-        document.title = language === 'tr' ? 'Living Clock — Zaman Canlıdır' : 'Living Clock — Time Is Alive';
-        document.querySelector('meta[name="description"]').content = language === 'tr'
-          ? 'Zamanın akışını sürekli dönüşen organik bir biçimle görünür kılan deneysel dijital saat.'
-          : 'An experimental digital clock that makes time visible through a continuously evolving organic form.';
-        languageButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language)));
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-          element.textContent = copy[language][element.dataset.i18n];
-        });
-        document.querySelectorAll('[data-i18n-aria]').forEach(element => {
-          element.setAttribute('aria-label', copy[language][element.dataset.i18nAria]);
-        });
-        state.lastSecond = -1;
+      function makeCells(random) {
+        const cells = [];
+        const lobes = 3 + Math.floor(random() * 3);
+        const phase = random() * TAU;
+        for (let row = -8; row <= 8; row++) {
+          for (let col = -9; col <= 9; col++) {
+            const x = (col + (Math.abs(row) % 2) / 2) * .113;
+            const y = row * .096;
+            const angle = Math.atan2(y, x);
+            const outline = .68 + Math.cos(lobes * angle + phase) * .17 + Math.sin(angle * 2 - phase) * .12;
+            const distance = Math.hypot(x, y);
+            if (distance > outline + random() * .13 || random() < .06) continue;
+            cells.push({
+              x: x + (random() - .5) * .035, y: y + (random() - .5) * .035,
+              phase: random() * TAU, size: (.055 + random() * .036) * (1.12 - distance * .48)
+            });
+          }
+        }
+        return cells;
       }
 
-      function resize() {
-        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
-        state.width = innerWidth;
-        state.height = innerHeight;
-        canvas.width = Math.round(state.width * state.dpr);
-        canvas.height = Math.round(state.height * state.dpr);
-        canvas.style.width = state.width + 'px';
-        canvas.style.height = state.height + 'px';
-        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-        state.cx = state.width * .5;
-        state.cy = state.height * (state.width < 700 ? .465 : .485);
-        state.radius = Math.min(state.width, state.height) * (state.width < 700 ? .34 : .37);
+      function pigment(life, offset, light, alpha) {
+        return "hsla(" + (life.hue + hueOfHour + offset) + "," + life.saturation + "%," + clamp(life.lightness + light + lightOfHour, 2, 98) + "%," + clamp(alpha, 0, 1) + ")";
       }
 
-      function rgba(offset, alpha, light = 1) {
-        const hourMood = .90 + .10 * Math.cos((new Date().getHours() / 24) * TAU - Math.PI);
-        const r = Math.min(255, state.palette[offset] * light * hourMood);
-        const g = Math.min(255, state.palette[offset + 1] * light * hourMood);
-        const b = Math.min(255, state.palette[offset + 2] * light * hourMood);
-        return `rgba(${r|0},${g|0},${b|0},${alpha})`;
+      function halo(life, x, y, radius, alpha, offset = 0) {
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        grad.addColorStop(0, pigment(life, offset, 14, alpha));
+        grad.addColorStop(.38, pigment(life, offset, -3, alpha * .43));
+        grad.addColorStop(1, pigment(life, offset, -28, 0));
+        ctx.fillStyle = grad;
+        ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
       }
 
-      function lerpTargets() {
-        for (let i = 0; i < state.palette.length; i++) state.palette[i] += (state.targetPalette[i] - state.palette[i]) * .025;
-        for (let i = 0; i < state.geometry.length; i++) state.geometry[i] += (state.targetGeometry[i] - state.geometry[i]) * .022;
-      }
-
-      function addRipple(x, y, strength = 1) {
-        if (state.ripples.length > 7) state.ripples.shift();
-        state.ripples.push({ x, y, age: 0, strength });
-      }
-
-      function drawAtmosphere(t) {
-        ctx.clearRect(0, 0, state.width, state.height);
-        const pulse = state.midnightPulse;
-        const wobbleX = state.cx + Math.sin(t * .00013) * state.radius * .08;
-        const wobbleY = state.cy + Math.cos(t * .00011) * state.radius * .06;
-        const glowRadius = state.radius * (1.35 + pulse * .35);
-        const glow = ctx.createRadialGradient(wobbleX, wobbleY, 0, wobbleX, wobbleY, glowRadius);
-        glow.addColorStop(0, rgba(9, .10 + pulse * .06));
-        glow.addColorStop(.36, rgba(9, .045 + pulse * .02));
-        glow.addColorStop(1, rgba(9, 0));
-        ctx.fillStyle = glow;
-        ctx.fillRect(wobbleX - glowRadius, wobbleY - glowRadius, glowRadius * 2, glowRadius * 2);
-      }
-
-      function contourRadius(theta, layer, t, now) {
-        const amp = state.geometry[1];
-        const detail = state.geometry[2];
-        const twist = state.geometry[3];
-        const speed = state.geometry[4];
-        const minute = now.getMinutes() + now.getSeconds() / 60;
-        const second = now.getSeconds() + now.getMilliseconds() / 1000;
-        const breath = Math.sin(t * .00042 * speed + layer * .18) * .026;
-        const minuteBody = Math.sin(theta * 2 + minute * .045 + t * .00008) * amp * .36;
-        const slowNoise = Math.sin(theta * (3 + twist * .35) + t * .00018 * speed + Math.sin(theta * 2.1 - t * .00009)) * amp * .54;
-        const surface = Math.sin(theta * detail - t * .00038 * speed + layer * .21 + second * .052) * amp * .17;
-        const cross = Math.sin(theta * (detail * .47 + 1.6) + Math.cos(theta * 3 - t * .00014) * 1.3) * amp * .22;
-        return 1 + breath + minuteBody + slowNoise + surface + cross;
-      }
-
-      function drawContours(t, now) {
-        const layerCount = Math.round(state.geometry[0]);
-        const lineAlpha = state.geometry[6];
-        const fillAlpha = state.geometry[7];
-        const drift = state.geometry[5];
-        const pointCount = prefersReducedMotion.matches ? 150 : 220;
-        const pointerDx = (state.smoothX - .5) * state.radius * .18 * state.pointerActive;
-        const pointerDy = (state.smoothY - .5) * state.radius * .14 * state.pointerActive;
-        const rotation = Math.sin(t * .00007) * .16 * drift;
-
-        ctx.save();
-        ctx.translate(state.cx + pointerDx * .18, state.cy + pointerDy * .18);
-        ctx.rotate(rotation);
-        ctx.globalCompositeOperation = state.effectiveTheme === 'solar' ? 'screen' : 'lighter';
-
-        for (let layer = layerCount - 1; layer >= 0; layer--) {
-          const depth = layerCount <= 1 ? 0 : layer / (layerCount - 1);
-          const spread = .55 + depth * .52;
-          const layerRadius = state.radius * spread;
-          const phase = layer * .137;
-          const paletteOffset = (layer % 3) * 3;
+      function drawDust(life, t) {
+        for (const mote of life.dust) {
+          const q = t * .17 + mote.phase;
+          const x = mote.x + Math.sin(q) * .14 - pointer.x * .024;
+          const y = mote.y + Math.cos(q * .7) * .11 - pointer.y * .024;
+          ctx.fillStyle = pigment(life, 12, 23, (.06 + .13 * (1 + Math.sin(q))) * Math.min(1, mote.radius * 260));
           ctx.beginPath();
+          ctx.arc(x, y, mote.radius, 0, TAU);
+          ctx.fill();
+        }
+      }
 
-          for (let i = 0; i <= pointCount; i++) {
-            const theta = (i / pointCount) * TAU;
-            const organic = contourRadius(theta + phase * .14, layer, t, now);
-            const asymmetry = 1 + Math.cos(theta - t * .00009 + phase) * .018 * drift;
-            const angleToPointer = Math.atan2(pointerDy, pointerDx || .0001);
-            const pointerArc = Math.max(0, Math.cos(theta - angleToPointer));
-            const pointerBulge = pointerArc * pointerArc * state.pointerActive * .018 * (1 - depth * .35);
-            const r = layerRadius * (organic + pointerBulge) + Math.sin(theta * 2 + phase) * layer * .18;
-            const x = Math.cos(theta) * r + pointerDx * (1 - depth) * .16;
-            const y = Math.sin(theta) * r * (.94 + Math.sin(t * .0001 + layer) * .015) + pointerDy * (1 - depth) * .12;
+      function veil(life, t, beat) {
+        const inflation = 1 + beat * .078;
+        const rimWidth = .97 * life.width * inflation;
+        const rise = -.82 * life.span - beat * .08;
+        const highlight = ctx.createLinearGradient(-rimWidth, rise, rimWidth * .8, .2);
+        highlight.addColorStop(0, pigment(life, 1, -35, .04));
+        highlight.addColorStop(.32, pigment(life, 11, 9, .45));
+        highlight.addColorStop(.53, pigment(life, 13, 28, .37));
+        highlight.addColorStop(.73, pigment(life, -9, -19, .13));
+        highlight.addColorStop(1, pigment(life, -10, -40, .07));
+
+        const fringe = 42 + Math.floor(life.rays[0] * 17);
+        for (let i = 0; i < fringe; i++) {
+          const a = i / fringe * TAU;
+          const r = life.rays[i];
+          const x = Math.cos(a) * rimWidth * (.89 + .05 * Math.sin(a * 5 + t + life.phase));
+          const y = -.225 + Math.sin(a) * .20;
+          const fall = (.36 + r ** .62 * .93) * life.span;
+          const curl = Math.sin(a * 2 + t * 1.45 + r * 6) * (.11 + r * .25);
+          const lean = Math.sin(t * .9 + life.phase) * .18 + pointer.x * .13;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.bezierCurveTo(x - curl * .65, y + fall * .22, x * .62 + curl + lean, y + fall * .55,
+            x * (.4 + r * .54) + lean - curl * .32, y + fall);
+          ctx.strokeStyle = pigment(life, r * 27 - 11, r * 18, .15 + .49 * r);
+          ctx.lineWidth = .0015 + r * .0032;
+          ctx.stroke();
+          if (i % 3 === 0) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(x + .14 * Math.cos(a), y + fall * .28, x * .88 - curl, y + fall * .52,
+              x * .69 + lean * .8, y + fall * .78);
+            ctx.strokeStyle = pigment(life, 14, 18, .22);
+            ctx.lineWidth = .0018;
+            ctx.stroke();
+          }
+        }
+        for (let i = 0; i < 8; i++) {
+          const r = life.rays[i + 73];
+          const phase = t * .92 + i * .73;
+          const x = mix(-.45, .47, i / 7) * rimWidth;
+          const length = (.38 + r * .43) * life.span;
+          const flex = Math.sin(phase) * .23 + pointer.x * .11;
+          const origin = -.24 + .10 * Math.sin(i);
+          ctx.beginPath();
+          ctx.moveTo(x, origin);
+          ctx.bezierCurveTo(x + flex, origin + length * .27, x * .74 - flex, origin + length * .52,
+            x * .45 + flex * .76, origin + length);
+          ctx.lineWidth = .013 + r * .011;
+          ctx.strokeStyle = pigment(life, -11, -5, .23);
+          ctx.stroke();
+          ctx.lineWidth = .004;
+          ctx.strokeStyle = pigment(life, 13, 21, .45);
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(-rimWidth, -.28);
+        ctx.bezierCurveTo(-rimWidth * .96, -.57, -rimWidth * .55, rise, -.1, rise);
+        ctx.bezierCurveTo(rimWidth * .49, rise - .12, rimWidth * .94, -.58, rimWidth, -.26);
+        ctx.bezierCurveTo(rimWidth * .91, .045, -rimWidth * .79, .10, -rimWidth, -.28);
+        ctx.fillStyle = highlight;
+        ctx.fill();
+        ctx.strokeStyle = pigment(life, 13, 25, .55);
+        ctx.lineWidth = .004;
+        ctx.stroke();
+
+        for (let i = 0; i < 65; i++) {
+          const a = i / 65 * TAU;
+          const ripple = Math.sin(a * Math.floor(life.frequency + 2) + t * 1.6) * .06 * life.amplitude;
+          const x = Math.cos(a) * (rimWidth + ripple);
+          const y = -.245 + Math.sin(a) * (.175 + ripple * .39);
+          const lead = Math.sin(a + t) * .18;
+          ctx.beginPath();
+          ctx.moveTo(-.09 + Math.cos(a) * .055, rise + Math.sin(a) * .042);
+          ctx.bezierCurveTo(x * .48 + lead, rise - .036, x * .91, y - .30 - .1 * Math.cos(a * 2), x, y);
+          ctx.strokeStyle = pigment(life, 18 * Math.sin(a) + 4, 12, .086 + .25 * life.rays[i]);
+          ctx.lineWidth = .002 + life.rays[i] * .002;
+          ctx.stroke();
+        }
+        for (let band = 1; band <= 17; band++) {
+          const q = band / 17;
+          const radial = Math.sin(q * Math.PI * .5);
+          ctx.beginPath();
+          for (let i = 0; i <= 84; i++) {
+            const a = i / 84 * TAU;
+            const d = 1 + Math.sin(a * 5 + q * 9 - t * 2) * .051 * q;
+            const x = Math.cos(a) * rimWidth * radial * d - .09 * (1 - q);
+            const y = mix(rise, -.23, q ** 1.38) + Math.sin(a) * .18 * q * d + Math.cos(a) * .03 * q;
             if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
           }
-
-          ctx.closePath();
-          ctx.lineWidth = Math.max(.36, (1.15 - depth * .55) * state.geometry[6]);
-          ctx.strokeStyle = rgba(paletteOffset, (0.055 + (1 - depth) * .125) * lineAlpha);
+          ctx.strokeStyle = pigment(life, band % 3 ? 12 : -10, 12, band > 14 ? .29 : .104);
+          ctx.lineWidth = band === 17 ? .006 : .0027;
           ctx.stroke();
+        }
+        for (const fleck of life.flecks) {
+          const q = fleck.depth;
+          const a = fleck.angle + t * .026;
+          const radius = Math.sin(q * Math.PI * .5);
+          const x = Math.cos(a) * rimWidth * radius - .09 * (1 - q);
+          const y = mix(rise, -.23, q ** 1.38) + Math.sin(a) * .18 * q + Math.cos(a) * .03 * q;
+          const sparkle = .5 + .5 * Math.cos(t * 1.7 - q * 8 + a * 2);
+          ctx.fillStyle = pigment(life, 18, 27, .12 + sparkle * .37);
+          ctx.beginPath();
+          ctx.ellipse(x, y, fleck.size, fleck.size * .51, a, 0, TAU);
+          ctx.fill();
+        }
+        halo(life, -.25, -.56, .32, .15, 15);
+      }
 
-          if (layer % 4 === 0 && fillAlpha > .01) {
-            ctx.fillStyle = rgba(paletteOffset, fillAlpha * (1 - depth) * .38);
+      function root(life, t, beat) {
+        halo(life, 0, 0, .66, .17, 30);
+        const current = Math.sin(t) * .047;
+        for (const branch of life.branches) {
+          const { x, y, nx, ny, heading, depth, phase, length, bend } = branch;
+          const flex = Math.sin(t * 1.15 + phase) * .036 * depth;
+          const sway = current + flex;
+          const endX = nx + sway * Math.abs(nx);
+          const endY = ny + flex * .45;
+          const originX = x + current * Math.abs(x);
+          const xControl = originX + Math.cos(heading + bend) * length * .44;
+          const yControl = y + Math.sin(heading + bend) * length * .44;
+          ctx.beginPath();
+          ctx.moveTo(originX, y);
+          ctx.bezierCurveTo(xControl, yControl, endX - Math.cos(heading) * length * .3, endY - Math.sin(heading) * length * .3, endX, endY);
+          ctx.strokeStyle = pigment(life, depth * 10 - 10, -28, .43);
+          ctx.lineWidth = .049 / (depth + 1.15);
+          ctx.stroke();
+          ctx.strokeStyle = pigment(life, depth * 8 + 6, 13, .61 - depth * .085);
+          ctx.lineWidth = .014 / (depth + 1);
+          ctx.stroke();
+          if (depth > 1) {
+            const r = .008 + (.5 + .5 * Math.sin(t * 2.2 - phase)) * .015;
+            ctx.beginPath();
+            ctx.ellipse(endX, endY, r * 1.8, r * .64, heading, 0, TAU);
+            ctx.fillStyle = pigment(life, 32, 23, .29 + beat * .19);
             ctx.fill();
           }
         }
-
-        ctx.restore();
       }
 
-      function drawCore(t) {
-        const x = state.cx + (state.smoothX - .5) * state.radius * .025 * state.pointerActive;
-        const y = state.cy + (state.smoothY - .5) * state.radius * .025 * state.pointerActive;
-        const r = state.radius * (.21 + Math.sin(t * .0005) * .012);
-        const core = ctx.createRadialGradient(x, y, 0, x, y, r);
-        core.addColorStop(0, rgba(0, .035));
-        core.addColorStop(.7, rgba(3, .012));
-        core.addColorStop(1, rgba(6, 0));
-        ctx.fillStyle = core;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, TAU);
-        ctx.fill();
-      }
-
-      function drawRipples(delta) {
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        for (let i = state.ripples.length - 1; i >= 0; i--) {
-          const ripple = state.ripples[i];
-          ripple.age += delta * .00055;
-          const eased = 1 - Math.pow(1 - Math.min(ripple.age, 1), 3);
-          const radius = state.radius * (.14 + eased * 1.25);
-          const alpha = Math.max(0, (1 - ripple.age) * .18 * ripple.strength);
+      function spore(life, t, beat) {
+        life.spores.forEach(node => {
+          const angle = node.angle + Math.sin(t * .7 + node.phase) * .09;
+          const orbit = node.orbit * (1 + Math.sin(t + node.phase) * .09);
+          node.x = Math.cos(angle) * orbit * life.width;
+          node.y = Math.sin(angle) * orbit * life.span;
+        });
+        life.spores.forEach((node, index) => {
+          if (index === 0) return;
+          const parent = life.spores[node.parent];
           ctx.beginPath();
-          ctx.arc(ripple.x, ripple.y, radius, 0, TAU);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = rgba(9, alpha);
+          ctx.moveTo(parent.x, parent.y);
+          ctx.quadraticCurveTo(node.x * .44 - node.y * .25, parent.y * .58 + node.y * .45 + node.x * .20, node.x, node.y);
+          ctx.strokeStyle = pigment(life, node.phase * 5, 11, .4);
+          ctx.lineWidth = .008 - node.orbit * .004;
           ctx.stroke();
-          if (ripple.age >= 1) state.ripples.splice(i, 1);
+        });
+        for (const node of life.spores) {
+          const r = node.size * (1 + Math.sin(t * 1.49 + node.phase) * .13 + beat * .06);
+          const turn = node.phase + t * .1;
+          const gradient = ctx.createRadialGradient(node.x - r * .3, node.y - r * .28, r * .01, node.x, node.y, r * 1.12);
+          gradient.addColorStop(0, pigment(life, 50, 27, .86));
+          gradient.addColorStop(.29, pigment(life, 26, 11, .5));
+          gradient.addColorStop(.77, pigment(life, -19, -20, .32));
+          gradient.addColorStop(1, pigment(life, -30, -10, .68));
+          ctx.beginPath();
+          ctx.ellipse(node.x, node.y, r, r * (.72 + .21 * Math.sin(turn) ** 2), turn, 0, TAU);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          ctx.strokeStyle = pigment(life, 24, 24, .48);
+          ctx.lineWidth = .0038;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(node.x - r * .08, node.y + r * .02, r * .65, r * .42, turn + .3, .4, 5.4);
+          ctx.strokeStyle = pigment(life, -14, 21, .29);
+          ctx.stroke();
+        }
+      }
+
+      function fold(life, t, beat) {
+        const petalCount = 7 + Math.floor(life.rays[1] * 5);
+        for (let i = 0; i < petalCount; i++) {
+          const a = i * GOLDEN_ANGLE + life.phase + Math.sin(t * .73 + i) * .14 + beat * .13;
+          const r = (.47 + life.rays[i] * .64) * life.span;
+          const w = .21 + life.rays[i + 10] * .40;
+          const flip = i % 2 ? -1 : 1;
+          ctx.save();
+          ctx.rotate(a);
+          ctx.scale(1, flip);
+          const gradient = ctx.createLinearGradient(-.1, 0, r * .8, w);
+          gradient.addColorStop(0, pigment(life, -15, -25, .18));
+          gradient.addColorStop(.29, pigment(life, -9 + i * 3, 2, .48));
+          gradient.addColorStop(.55, pigment(life, 18, 25, .55));
+          gradient.addColorStop(.77, pigment(life, 29, -11, .43));
+          gradient.addColorStop(1, pigment(life, 23, 15, .21));
+          ctx.beginPath();
+          ctx.moveTo(-.10, -.045);
+          ctx.bezierCurveTo(r * .08, -w, r * 1.15, -w * .88, r, w * .15);
+          ctx.bezierCurveTo(r * .91, w * .7, r * .33, w * 1.18, -.10, -.045);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          ctx.lineWidth = .004;
+          ctx.strokeStyle = pigment(life, i * 5, 22, .49);
+          ctx.stroke();
+          for (let j = 1; j < 18; j++) {
+            const q = j / 18;
+            const s = Math.sin(q * Math.PI);
+            ctx.beginPath();
+            ctx.moveTo(-.095, -.045);
+            ctx.bezierCurveTo(r * (.1 + .14 * q), -w + w * q * 1.55,
+              r * (.84 + .14 * s), w * (q - .58), r * (.68 + .31 * s), w * (q - .27));
+            ctx.strokeStyle = pigment(life, j * 2 - 14, 15, .19 + .25 * s);
+            ctx.lineWidth = .0025;
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      function colony(life, t, beat) {
+        for (const cell of life.cells) {
+          const drift = Math.sin(t * 1.4 + cell.x * 4 - cell.y * 3);
+          const x = cell.x * life.width * (1 + beat * .07) + drift * .015;
+          const y = cell.y * life.span + Math.sin(t + cell.y * 4) * .014;
+          const r = cell.size * (1 + drift * .144);
+          const edge = .37 + drift * .14;
+          ctx.beginPath();
+          for (let i = 0; i < 7; i++) {
+            const a = i / 6 * TAU + cell.phase * .085;
+            const dx = x + Math.cos(a) * r;
+            const dy = y + Math.sin(a) * r * (.86 + Math.sin(a + cell.phase) * .09);
+            if (i === 0) ctx.moveTo(dx, dy); else ctx.lineTo(dx, dy);
+          }
+          ctx.closePath();
+          ctx.fillStyle = pigment(life, 22 * drift + cell.phase * 3, 3 + 17 * drift, .13 + .11 * drift);
+          ctx.fill();
+          ctx.strokeStyle = pigment(life, drift * 16, 19, edge);
+          ctx.lineWidth = .003;
+          ctx.stroke();
+          if (drift > -.13) {
+            ctx.beginPath();
+            ctx.arc(x + drift * .011, y - r * .18, r * (.14 + drift * .15), 0, TAU);
+            ctx.fillStyle = pigment(life, 30, 25, .24 + drift * .35);
+            ctx.fill();
+          }
+        }
+      }
+
+      function filament(life, t, beat) {
+        const braid = Math.sin(t * .9) * .22 + pointer.x * .08;
+        for (let i = 0; i < 95; i++) {
+          const angle = i * GOLDEN_ANGLE + life.phase;
+          const q = life.rays[i];
+          const warp = t * 1.05 + angle * .36 + q * 5;
+          const lift = .70 + q * .38;
+          const tipX = Math.cos(angle) * lift * life.width;
+          const tipY = Math.sin(angle) * lift * life.span;
+          const startX = -.48 + Math.sin(angle) * .27;
+          const startY = .47 + Math.cos(angle) * .31;
+          const process = Math.sin(warp) * .48 * life.amplitude;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.bezierCurveTo(startX - .4 * q, startY + process, -.62 + q * .56, -.69 + process,
+            -.06 + braid, -.04 + .25 * Math.cos(warp));
+          ctx.bezierCurveTo(.34 + process, .44 - .63 * q, tipX * .55 + process * .23, tipY * .89 - .38 * q,
+            tipX, tipY - beat * .08);
+          ctx.strokeStyle = pigment(life, q * 57 - 15, q * 18 - 5, .105 + q * .36);
+          ctx.lineWidth = .0014 + q * .0032;
+          ctx.stroke();
+          if (i % 7 === 0) {
+            ctx.beginPath();
+            ctx.arc(tipX, tipY - beat * .08, .003 + q * .008, 0, TAU);
+            ctx.fillStyle = pigment(life, 29, 24, .34 + q * .49);
+            ctx.fill();
+          }
+        }
+      }
+
+      const painters = { veil, root, spore, fold, colony, filament };
+
+      function habitat(life, t, airHue) {
+        const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * .75);
+        glow.addColorStop(0, "hsl(" + (airHue + hueOfHour + 9) + ",35%," + (13 + lightOfHour * .24) + "%)");
+        glow.addColorStop(.43, "#151512");
+        glow.addColorStop(1, "#0d0d0b");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.scale(unit, unit);
+        drawDust(life, t);
+        ctx.restore();
+      }
+
+      function drawLife(life, now, timestamp, opacity, awake) {
+        const t = (motion.matches ? 0 : timestamp * .001) * life.speed + life.phase;
+        const seconds = motion.matches ? 0 : now.getSeconds() + now.getMilliseconds() / 1000;
+        const breath = Math.sin(t * 1.4 + seconds * .025);
+        const tide = Math.sin(now.getMinutes() / 60 * TAU) * .085;
+        const latest = pulses[pulses.length - 1];
+        const age = latest && !motion.matches ? Math.max(0, timestamp - latest.born) / 1000 : 9;
+        const recoil = Math.sin(age * 12) * Math.exp(-age * 4) * .065;
+        const expansion = 1 + breath * .045 + tide * .28 + awake * .025 + recoil;
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(centerX + pointer.x * unit * .14, centerY + pointer.y * unit * .095);
+        ctx.scale(unit * expansion, unit * expansion);
+        ctx.rotate(life.tilt + Math.sin(t * .36) * .09 + pointer.x * .11 + recoil * .8);
+        halo(life, -.04, -.12, 1.37, .085 + awake * .10, -12);
+        ctx.save();
+        ctx.scale(1, 1 + tide);
+        painters[life.anatomy](life, t, breath);
+        ctx.restore();
+        if (life.secondary) {
+          ctx.save();
+          ctx.globalAlpha = opacity * .58;
+          ctx.translate(.12, .10);
+          ctx.rotate(.52 + life.rays[12] * 2);
+          const size = .65 + life.rays[8] * .24;
+          ctx.scale(size, size);
+          painters[life.secondary](life, t + 2.1, -breath);
+          ctx.restore();
         }
         ctx.restore();
       }
 
-      function updateClock(now) {
-        const second = now.getSeconds();
-        if (second !== state.lastSecond) {
-          state.lastSecond = second;
-          const hh = String(now.getHours()).padStart(2, '0');
-          const mm = String(now.getMinutes()).padStart(2, '0');
-          const ss = String(second).padStart(2, '0');
-          timeElement.textContent = `${hh}:${mm}:${ss}`;
-          timeElement.dateTime = now.toISOString();
-          const locale = state.language === 'tr' ? 'tr-TR' : 'en-US';
-          dateElement.textContent = new Intl.DateTimeFormat(locale, {
-            weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-          }).format(now);
-        }
-
-        const minuteKey = now.getHours() * 60 + now.getMinutes();
-        if (state.lastMinute !== -1 && minuteKey !== state.lastMinute) addRipple(state.cx, state.cy, .85);
-        state.lastMinute = minuteKey;
-
-        const hour = now.getHours();
-        if (state.lastHour === 23 && hour === 0) {
-          state.midnightPulse = 1;
-          addRipple(state.cx, state.cy, 1.7);
-        }
-        state.lastHour = hour;
-        if (state.theme === 'auto') updateEffectiveTheme(now);
+      function wave(x, y, now, strong = false) {
+        if (motion.matches) return;
+        if (pulses.length >= 6) pulses.shift();
+        pulses.push({ x, y, born: now, strong });
       }
 
-      let previousTime = performance.now();
-      function render(timestamp) {
-        if (!state.running) return;
-        const delta = Math.min(50, timestamp - previousTime || 16.7);
-        previousTime = timestamp;
+      function drawWaves(life, timestamp) {
+        for (let i = pulses.length - 1; i >= 0; i--) {
+          const pulse = pulses[i];
+          const age = (timestamp - pulse.born) / (pulse.strong ? 2350 : 1650);
+          if (age >= 1) {
+            pulses.splice(i, 1);
+            continue;
+          }
+          const radius = (.09 + (1 - (1 - age) ** 2) * (pulse.strong ? 1.36 : .87)) * unit;
+          ctx.beginPath();
+          for (let step = 0; step <= 70; step++) {
+            const a = step / 70 * TAU;
+            const r = radius * (1 + Math.sin(a * 3 + life.phase) * .035 + Math.cos(a * 7 - age * 4) * .018);
+            const x = pulse.x * width + Math.cos(a) * r;
+            const y = pulse.y * height + Math.sin(a) * r * .87;
+            if (step === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = pigment(life, 16, 25, (1 - age) ** 2 * (pulse.strong ? .48 : .34));
+          ctx.lineWidth = .8;
+          ctx.stroke();
+        }
+      }
+
+      function clock(now, timestamp) {
+        const second = Math.floor(now.getTime() / 1000);
+        if (second === lastSecond) return;
+        lastSecond = second;
+        const h = now.getHours(), m = now.getMinutes();
+        timeNode.textContent = [h, m, now.getSeconds()].map(n => String(n).padStart(2, "0")).join(":");
+        timeNode.dateTime = now.toISOString();
+        const day = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDate();
+        if (day !== lastDate) {
+          dateNode.textContent = dateFormat[language].format(now);
+          lastDate = day;
+        }
+        const minute = h * 60 + m;
+        if (lastMinute !== null && minute !== lastMinute) {
+          wave(centerX / width, centerY / height, timestamp, minute === 0);
+          if (lastMinute === 1439 && minute === 0) midnight = timestamp;
+        }
+        lastMinute = minute;
+      }
+
+      function paint(timestamp) {
         const now = new Date();
-        updateClock(now);
-        lerpTargets();
-        state.smoothX += (state.pointerX - state.smoothX) * .045;
-        state.smoothY += (state.pointerY - state.smoothY) * .045;
-        state.pointerActive += ((state.pointerActive > .01 ? 1 : 0) - state.pointerActive) * .03;
-        state.midnightPulse *= .987;
-        const visualTime = prefersReducedMotion.matches ? Math.floor(timestamp / 5000) * 5000 : timestamp;
-        drawAtmosphere(visualTime);
-        drawContours(visualTime, now);
-        drawCore(visualTime);
-        drawRipples(prefersReducedMotion.matches ? delta * .12 : delta);
-        state.frame = requestAnimationFrame(render);
+        clock(now, timestamp);
+        const hourPhase = (now.getHours() + now.getMinutes() / 60 - 13) / 24 * TAU;
+        hueOfHour = Math.sin(hourPhase) * 9;
+        lightOfHour = Math.cos(hourPhase) * 4;
+        const response = motion.matches ? 1 : .082;
+        pointer.x += (pointer.targetX - pointer.x) * response;
+        pointer.y += (pointer.targetY - pointer.y) * response;
+        const reveal = motion.matches ? 1 : clamp((timestamp - born) / 1100, 0, 1);
+        const blend = reveal * reveal * (3 - 2 * reveal);
+        const awake = motion.matches ? 0 : Math.max(0, 1 - (timestamp - midnight) / 4100);
+        const hueDelta = outgoing ? ((current.hue - outgoing.hue + 540) % 360) - 180 : 0;
+        const airHue = outgoing ? outgoing.hue + hueDelta * blend : current.hue;
+        habitat(current, motion.matches ? 0 : timestamp * .001, airHue);
+        if (outgoing && blend < 1) drawLife(outgoing, now, timestamp, 1 - blend, awake);
+        else outgoing = null;
+        drawLife(current, now, timestamp, blend, awake);
+        if (!motion.matches) drawWaves(current, timestamp);
+        if (awake > 0) {
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.scale(unit, unit);
+          halo(current, 0, 0, 1.9, awake * .2, 40);
+          ctx.restore();
+        }
       }
 
-      function showToast(message) {
-        clearTimeout(state.toastTimer);
-        toastElement.textContent = message;
-        toastElement.classList.add('visible');
-        state.toastTimer = setTimeout(() => toastElement.classList.remove('visible'), 2800);
+      function loop(timestamp) {
+        frame = 0;
+        if (document.hidden) return;
+        if (timestamp - lastPaint >= (motion.matches ? 180 : 15)) {
+          paint(timestamp);
+          lastPaint = timestamp;
+        }
+        frame = requestAnimationFrame(loop);
       }
 
-      function toggleZen(force) {
-        state.zen = typeof force === 'boolean' ? force : !state.zen;
-        document.body.classList.toggle('zen', state.zen);
-        zenButton.setAttribute('aria-pressed', String(state.zen));
-        if (state.zen) showToast(copy[state.language].zenExit);
+      function resize() {
+        width = stage.clientWidth || 1;
+        height = stage.clientHeight || 1;
+        const nextScale = Math.min(window.devicePixelRatio || 1, 2);
+        const nextWidth = Math.round(width * nextScale);
+        const nextHeight = Math.round(height * nextScale);
+        if (canvas.width !== nextWidth || canvas.height !== nextHeight || scale !== nextScale) {
+          canvas.width = nextWidth;
+          canvas.height = nextHeight;
+        }
+        scale = nextScale;
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        centerX = width * (compact.matches ? .5 : .655);
+        centerY = height * (compact.matches ? .58 : .506);
+        unit = compact.matches ? Math.min(width * .39, height * .269) : Math.min(width * .263, height * .405);
+        if (!document.hidden) paint(performance.now());
+      }
+
+      function signature() {
+        return current.seed.toString(16).toUpperCase().padStart(8, "0");
+      }
+
+      function updateSpecimen(announce = false) {
+        const text = labels[language];
+        nameNode.textContent = current.secondary
+          ? text[current.anatomy] + " × " + text[current.secondary]
+          : text[current.anatomy];
+        signatureNode.textContent = (current.secondary ? text.hybrid + " · " : "") + signature();
+        for (const button of formButtons) {
+          button.setAttribute("aria-pressed", String(button.dataset.form === current.family));
+        }
+        stage.style.setProperty("--accent", pigment(current, 12, 21, 1));
+        if (announce) announcement.textContent = nameNode.textContent + " · " + signature();
+      }
+
+      function languageTo(value) {
+        language = value;
+        const text = labels[value];
+        persist("language", value);
+        document.documentElement.lang = value;
+        document.title = text.title;
+        document.querySelector('meta[name="description"]').content = text.description;
+        document.querySelectorAll("[data-text]").forEach(node => { node.textContent = text[node.dataset.text]; });
+        document.querySelectorAll("[data-label]").forEach(node => {
+          const name = text[node.dataset.label];
+          node.setAttribute("aria-label", name);
+          if (node.tagName === "BUTTON") node.title = name;
+        });
+        for (const button of languageButtons) button.setAttribute("aria-pressed", String(button.dataset.lang === value));
+        lastDate = "";
+        lastSecond = -1;
+        clock(new Date(), performance.now());
+        updateSpecimen();
+      }
+
+      function spawn(family) {
+        const now = performance.now();
+        const seed = (current.seed + 0x9E3779B9) >>> 0;
+        outgoing = current;
+        current = makeLife(family, seed);
+        born = now;
+        persist("family", family);
+        persist("seed", String(seed));
+        updateSpecimen(true);
+        paint(now);
+      }
+
+      function coordinates(event) {
+        const bounds = stage.getBoundingClientRect();
+        return [
+          clamp((event.clientX - bounds.left) / width, 0, 1),
+          clamp((event.clientY - bounds.top) / height, 0, 1)
+        ];
+      }
+
+      function setPointer(event) {
+        const [x, y] = coordinates(event);
+        pointer.targetX = (x - .5) * 2;
+        pointer.targetY = (y - .5) * 2;
+      }
+
+      function releasePointer() {
+        pointer.targetX = pointer.targetY = 0;
+      }
+
+      function toggleZen() {
+        zen = !zen;
+        if (zen) focusBeforeZen = document.activeElement;
+        document.body.classList.toggle("zen", zen);
+        zenButton.setAttribute("aria-pressed", String(zen));
+        resize();
+        if (zen) stage.focus({ preventScroll: true });
+        else if (focusBeforeZen instanceof HTMLElement) focusBeforeZen.focus({ preventScroll: true });
+      }
+
+      function notify(message) {
+        announcement.textContent = message;
+        notice.textContent = message;
+        notice.hidden = false;
+        clearTimeout(noticeTimer);
+        noticeTimer = setTimeout(() => { notice.hidden = true; }, 2600);
       }
 
       async function toggleFullscreen() {
         try {
-          if (!document.fullscreenElement) {
-            if (!document.documentElement.requestFullscreen) throw new Error('unsupported');
-            await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
-          } else {
-            await document.exitFullscreen();
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch {
+          notify(labels[language].fullscreenError);
+        }
+      }
+
+      function exportImage() {
+        const picture = document.createElement("canvas");
+        picture.width = canvas.width;
+        picture.height = canvas.height;
+        const output = picture.getContext("2d");
+        output.drawImage(canvas, 0, 0);
+        output.scale(scale, scale);
+        const stageBox = stage.getBoundingClientRect();
+        const clockBox = timeNode.getBoundingClientRect();
+        const dateBox = dateNode.getBoundingClientRect();
+        const fontSize = parseFloat(getComputedStyle(timeNode).fontSize);
+        output.fillStyle = "#f4eee4";
+        output.textBaseline = "middle";
+        output.font = fontSize + 'px Georgia, serif';
+        output.fillText(timeNode.textContent, clockBox.left - stageBox.left, clockBox.top - stageBox.top + clockBox.height / 2, width - 24);
+        output.fillStyle = "#c5b9a9";
+        output.font = '13px sans-serif';
+        output.fillText(dateNode.textContent, dateBox.left - stageBox.left, dateBox.top - stageBox.top + dateBox.height / 2, width - 24);
+        output.fillStyle = "#eee9df";
+        output.font = '20px Georgia, serif';
+        output.fillText("Living Clock", 20, height - 27);
+        output.textAlign = "right";
+        output.fillStyle = pigment(current, 12, 22, 1);
+        output.font = 'italic 19px Georgia, serif';
+        output.fillText(nameNode.textContent, width - 20, height - 28, width * .55);
+        const filename = "living-clock-" + signature().toLowerCase() + ".png";
+        picture.toBlob(blob => {
+          if (!blob) {
+            notify(labels[language].saveError);
+            return;
           }
-        } catch (_) {
-          showToast(copy[state.language].fullscreenError);
-        }
-      }
-
-      function drawExportText(exportContext, width, height, scale) {
-        const timeSize = Math.min(width * .105, height * .17);
-        exportContext.save();
-        exportContext.textAlign = 'center';
-        exportContext.textBaseline = 'middle';
-        exportContext.shadowColor = 'rgba(0,0,0,.4)';
-        exportContext.shadowBlur = 24 * scale;
-        exportContext.fillStyle = 'rgba(248,249,250,.96)';
-        exportContext.font = `200 ${timeSize}px Inter, Helvetica Neue, Arial, sans-serif`;
-        exportContext.fillText(timeElement.textContent, width / 2, height * .49);
-        exportContext.shadowBlur = 0;
-        exportContext.fillStyle = 'rgba(245,247,248,.62)';
-        exportContext.font = `500 ${Math.max(12 * scale, timeSize * .087)}px Inter, Helvetica Neue, Arial, sans-serif`;
-        exportContext.fillText(dateElement.textContent.toLocaleUpperCase(state.language === 'tr' ? 'tr-TR' : 'en-US'), width / 2, height * .49 + timeSize * .72);
-        exportContext.textAlign = 'left';
-        exportContext.fillStyle = 'rgba(245,247,248,.76)';
-        exportContext.font = `500 ${13 * scale}px Inter, Helvetica Neue, Arial, sans-serif`;
-        exportContext.fillText('LIVING CLOCK', 34 * scale, 38 * scale);
-        exportContext.fillStyle = 'rgba(245,247,248,.35)';
-        exportContext.font = `500 ${9 * scale}px Inter, Helvetica Neue, Arial, sans-serif`;
-        exportContext.fillText(copy[state.language].experiment, 34 * scale, 57 * scale);
-        exportContext.restore();
-      }
-
-      async function saveScreenshot() {
-        try {
-          const scale = Math.min(2, window.devicePixelRatio || 1);
-          const exportCanvas = document.createElement('canvas');
-          exportCanvas.width = Math.round(state.width * scale);
-          exportCanvas.height = Math.round(state.height * scale);
-          const exportContext = exportCanvas.getContext('2d');
-          exportContext.fillStyle = themes[state.effectiveTheme].bg;
-          exportContext.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-          const halo = exportContext.createRadialGradient(exportCanvas.width / 2, exportCanvas.height * .47, 0, exportCanvas.width / 2, exportCanvas.height * .47, Math.min(exportCanvas.width, exportCanvas.height) * .55);
-          halo.addColorStop(0, rgba(9, .11));
-          halo.addColorStop(1, rgba(9, 0));
-          exportContext.fillStyle = halo;
-          exportContext.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-          exportContext.drawImage(canvas, 0, 0, exportCanvas.width, exportCanvas.height);
-          drawExportText(exportContext, exportCanvas.width, exportCanvas.height, scale);
-          const blob = await new Promise((resolve, reject) => exportCanvas.toBlob(value => value ? resolve(value) : reject(new Error('blob')), 'image/png'));
           const url = URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-          anchor.href = url;
-          anchor.download = `living-clock-${stamp}.png`;
-          anchor.click();
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          showToast(copy[state.language].screenshotSaved);
-        } catch (_) {
-          showToast(copy[state.language].screenshotError);
-        }
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.append(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2500);
+          notify(labels[language].saveDone);
+        }, "image/png");
       }
 
-      function updatePointer(event) {
-        state.pointerX = Math.max(0, Math.min(1, event.clientX / state.width));
-        state.pointerY = Math.max(0, Math.min(1, event.clientY / state.height));
-        state.pointerActive = Math.max(state.pointerActive, .12);
-      }
+      const storedFamily = restore("family", "veil");
+      const initial = families.includes(storedFamily) || storedFamily === "hybrid" ? storedFamily : "veil";
+      const storedSeed = restore("seed", "");
+      const seed = /^\d{1,10}$/.test(storedSeed) ? Number(storedSeed) >>> 0 : 0x67E2C3A1;
+      current = makeLife(initial, seed, initial === "veil" && !storedSeed);
 
-      stage.addEventListener('pointermove', updatePointer, { passive: true });
-      stage.addEventListener('pointerenter', () => { state.pointerActive = .2; });
-      stage.addEventListener('pointerleave', () => {
-        state.pointerX = state.pointerY = .5;
-        state.pointerActive = .001;
-      });
-      stage.addEventListener('pointerdown', event => {
-        updatePointer(event);
-        if (state.zen) {
-          toggleZen(false);
-        } else {
-          addRipple(event.clientX, event.clientY, 1.15);
+      for (const button of formButtons) button.addEventListener("click", () => spawn(button.dataset.form));
+      for (const button of languageButtons) button.addEventListener("click", () => languageTo(button.dataset.lang));
+      document.getElementById("mutation").addEventListener("click", () => spawn("hybrid"));
+      document.getElementById("save").addEventListener("click", exportImage);
+      zenButton.addEventListener("click", toggleZen);
+      fullscreenButton.addEventListener("click", toggleFullscreen);
+      document.addEventListener("fullscreenchange", () => fullscreenButton.setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
+      stage.addEventListener("pointermove", setPointer, { passive: true });
+      stage.addEventListener("pointerleave", releasePointer);
+      stage.addEventListener("pointercancel", releasePointer);
+      stage.addEventListener("pointerup", event => { if (event.pointerType !== "mouse") releasePointer(); });
+      stage.addEventListener("pointerdown", event => {
+        if (zen) {
+          toggleZen();
+          return;
         }
+        setPointer(event);
+        const [x, y] = coordinates(event);
+        wave(x, y, performance.now());
       });
-
-      themeButtons.forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme)));
-      languageButtons.forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.lang)));
-      fullscreenButton.addEventListener('click', toggleFullscreen);
-      zenButton.addEventListener('click', () => toggleZen());
-      screenshotButton.addEventListener('click', saveScreenshot);
-
-      document.addEventListener('fullscreenchange', () => fullscreenButton.setAttribute('aria-pressed', String(Boolean(document.fullscreenElement))));
-      document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && state.zen) toggleZen(false);
-        if (event.key.toLowerCase() === 'z' && !event.ctrlKey && !event.metaKey && !event.altKey) toggleZen();
+      document.addEventListener("keydown", event => {
+        if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+        if (event.key.toLowerCase() === "z" || (event.key === "Escape" && zen)) toggleZen();
       });
-      document.addEventListener('visibilitychange', () => {
+      document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-          state.running = false;
-          cancelAnimationFrame(state.frame);
-        } else if (!state.running) {
-          state.running = true;
-          previousTime = performance.now();
-          state.frame = requestAnimationFrame(render);
+          cancelAnimationFrame(frame);
+          frame = 0;
+          releasePointer();
+        } else if (!frame) {
+          lastMinute = null;
+          frame = requestAnimationFrame(loop);
         }
       });
-      addEventListener('resize', resize, { passive: true });
-
+      new ResizeObserver(resize).observe(stage);
+      window.addEventListener("resize", resize, { passive: true });
+      motion.addEventListener("change", () => {
+        pulses.length = 0;
+        paint(performance.now());
+      });
+      languageTo(language);
       resize();
-      updateEffectiveTheme(new Date(), true);
-      setTheme(state.theme);
-      setLanguage(state.language);
-      updateClock(new Date());
-      state.frame = requestAnimationFrame(render);
+      if (!document.hidden) frame = requestAnimationFrame(loop);
     })();
   </script>
 </body>
